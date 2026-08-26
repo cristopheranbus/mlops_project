@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Reporte de seguridad
+    url: https://github.com/cristopheranbus/mlops_project/security/policy
+    about: Lee el canal de reporte aplicable; no publiques secretos en un issue.

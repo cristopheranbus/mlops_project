@@ -236,6 +236,7 @@ alcance completo y cada código de error están documentados en
 | [Validación](docs/validation.md) | CLI, reglas, códigos, límites y CI | Usuarios y mantenedores |
 | [Ejemplos](docs/examples.md) | Solicitudes completas para casos frecuentes | Usuarios |
 | [Solución de problemas](docs/troubleshooting.md) | Fallos comunes y diagnóstico | Todos |
+| [Gobernanza](docs/governance.md) | PRs, revisión, protección de `main` y notificaciones | Contribuidores y mantenedores |
 | [Contribución](CONTRIBUTING.md) | Desarrollo, pruebas y cambios de reglas | Contribuidores |
 | [Seguridad](SECURITY.md) | Credenciales, reportes y respuesta ante filtraciones | Todos |
 
@@ -280,6 +281,12 @@ analizado. Consulta [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Para reportar una vulnerabilidad o una exposición accidental, sigue
 [SECURITY.md](SECURITY.md).
+
+## Contribuciones
+
+Las contribuciones se realizan mediante pull requests. `@cristopheranbus` figura como code
+owner global para recibir solicitudes de revisión. Antes de abrir un PR, consulta
+[CONTRIBUTING.md](CONTRIBUTING.md) y la [política de gobernanza](docs/governance.md).
 
 ## Licencia
 

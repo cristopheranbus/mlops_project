@@ -21,8 +21,9 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 
 1. [Diseño interno](design.md)
 2. [Validación](validation.md)
-3. [Guía de contribución](../CONTRIBUTING.md)
-4. [Política de seguridad](../SECURITY.md)
+3. [Gobernanza y revisión](governance.md)
+4. [Guía de contribución](../CONTRIBUTING.md)
+5. [Política de seguridad](../SECURITY.md)
 
 ### Tengo un fallo
 
@@ -42,4 +43,3 @@ la generación viven bajo [`references/`](../references/):
 
 Cuando una guía y una referencia discrepen, corrige ambas. `SKILL.md` define el flujo de
 ejecución y las referencias definen el estándar aplicado.
-

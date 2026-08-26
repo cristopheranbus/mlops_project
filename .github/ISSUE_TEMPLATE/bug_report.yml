@@ -1,0 +1,62 @@
+name: Reporte de error
+description: Informa un comportamiento reproducible de la skill o su validador.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por informar el problema. No incluyas tokens, archivos `.env`, claves,
+        datos privados ni configuración productiva.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema observado
+      description: Explica qué ocurrió y qué esperabas que ocurriera.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproducción mínima
+      description: Incluye pasos y comandos mínimos, sin información sensible.
+    validations:
+      required: true
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Perfil afectado
+      options:
+        - No aplica
+        - python-ml
+        - mlflow-local
+        - databricks-mlops
+        - Todos
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Entorno
+      description: Sistema operativo, versión de Python, versión de uv y commit utilizado.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidencia sanitizada
+      description: Pega logs relevantes después de eliminar secretos y datos privados.
+      render: text
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmaciones
+      options:
+        - label: Revisé que el reporte no contenga secretos ni datos privados.
+          required: true
+        - label: Busqué reportes existentes sobre el mismo problema.
+          required: true
+

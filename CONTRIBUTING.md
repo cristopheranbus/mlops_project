@@ -39,14 +39,16 @@ uv run mypy --version
 
 ## Flujo de trabajo
 
-1. crea una rama con un propósito concreto;
+1. crea un fork o una rama con un propósito concreto;
 2. revisa `SKILL.md` y la referencia normativa relacionada;
 3. implementa el cambio más pequeño que resuelva el problema;
 4. agrega o ajusta pruebas;
 5. actualiza la documentación pública;
 6. ejecuta todos los gates;
 7. revisa el diff completo y busca secretos;
-8. usa commits enfocados y mensajes descriptivos.
+8. usa commits enfocados y mensajes descriptivos;
+9. abre un pull request hacia `main` y completa su plantilla;
+10. responde la revisión y mantén el PR actualizado hasta que CI esté verde.
 
 Antes de editar, comprueba el estado del repositorio:
 
@@ -55,6 +57,9 @@ git status --short --branch
 ```
 
 No descartes ni reformatees cambios ajenos que no pertenezcan a tu contribución.
+
+`@cristopheranbus` es code owner global y debe revisar los cambios antes del merge. La
+política completa está en [docs/governance.md](docs/governance.md).
 
 ## Gates obligatorios
 

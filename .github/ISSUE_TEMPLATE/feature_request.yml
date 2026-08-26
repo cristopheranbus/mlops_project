@@ -1,0 +1,44 @@
+name: Propuesta de mejora
+description: Propón una capacidad, regla o mejora documental para la skill.
+title: "[Mejora]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Necesidad
+      description: Describe el problema que la mejora resolvería y quién se beneficia.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Propuesta
+      description: Explica el resultado deseado sin imponer detalles innecesarios.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Alcance y perfiles
+      description: Indica qué perfiles, contratos, documentos o interfaces cambiarían.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Describe soluciones más pequeñas o compatibles que hayas evaluado.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmaciones
+      options:
+        - label: La propuesta corresponde a la creación de proyectos ML nuevos.
+          required: true
+        - label: Busqué propuestas existentes sobre la misma necesidad.
+          required: true
+

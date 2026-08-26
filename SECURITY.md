@@ -21,11 +21,15 @@ vez exista un repositorio remoto y un canal público definido.
 
 ## Cómo reportar
 
-Este proyecto todavía no publica un canal privado específico. Antes de hacer público el
-repositorio, configura una vía de reporte privada —por ejemplo, advisories del proveedor
-del repositorio— y actualiza esta sección con instrucciones concretas.
+La plantilla de issues enlaza esta política en lugar de abrir un reporte público. Si el
+repositorio se publica, el canal recomendado es **GitHub private vulnerability
+reporting**, que debe habilitarse en su configuración de seguridad.
 
-Mientras no exista ese canal:
+Cuando ese canal esté habilitado, usa `Security` → `Report a vulnerability` en GitHub. Si
+el repositorio permanece privado, limita los reportes a colaboradores autorizados y
+define un contacto privado para terceros antes de ampliar el acceso. No abras un issue
+público para una vulnerabilidad. Mientras el repositorio remoto o el canal privado todavía
+no estén disponibles:
 
 - no publiques credenciales ni detalles explotables en un issue público;
 - contacta directamente al mantenedor mediante un medio privado acordado;
@@ -114,4 +118,3 @@ Una vez exista un canal formal, el proceso recomendado es:
 5. rotar cualquier credencial comprometida;
 6. publicar una actualización y mitigaciones;
 7. atribuir al reportante cuando lo desee y sea seguro.
-
