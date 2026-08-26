@@ -13,4 +13,3 @@
   promotion.
 - Tests must use isolated temporary stores and must not depend on a developer's MLflow
   state.
-

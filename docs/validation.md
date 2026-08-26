@@ -1,13 +1,14 @@
 # Validación y diagnóstico
 
-`scripts/validate_project.py` comprueba que un proyecto generado cumpla el contrato
+`skills/create-mlops-project/scripts/validate_project.py` comprueba que un proyecto
+generado cumpla el contrato
 estructural mínimo de su perfil. Es rápido, determinista, no usa red y no modifica el
 directorio analizado.
 
 ## Uso del CLI
 
 ```text
-python scripts/validate_project.py PROJECT_ROOT [--profile PROFILE]
+python skills/create-mlops-project/scripts/validate_project.py PROJECT_ROOT [--profile PROFILE]
 ```
 
 Valores de `PROFILE`:
@@ -20,7 +21,8 @@ Valores de `PROFILE`:
 Ejemplo desde este repositorio:
 
 ```powershell
-uv run python scripts/validate_project.py C:\proyectos\risk_model --profile auto
+uv run python skills/create-mlops-project/scripts/validate_project.py `
+  C:\proyectos\risk_model --profile auto
 ```
 
 Salida exitosa:
@@ -212,4 +214,3 @@ uv run pytest --basetemp .pytest-tmp
 La suite usa `tmp_path`, construye proyectos mínimos y verifica que la validación no
 modifique archivos. En entornos Windows restringidos, `--basetemp .pytest-tmp` evita
 problemas de permisos en la carpeta temporal global.
-

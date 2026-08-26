@@ -1,6 +1,6 @@
 ---
 name: create-mlops-project
-description: Create new production-oriented Python ML and MLOps repositories from scratch with configurable local, MLflow, and Databricks profiles, including quality gates, automated tests, CI, and operational documentation. Use for bootstrapping a complete new ML project; do not use for ordinary Python packages or for modifying an existing repository.
+description: Create a new production-oriented Python ML or MLOps repository from a problem contract, using a local, MLflow, or Databricks profile with tests, CI, validation, and operational documentation. Use when bootstrapping a new ML repository; do not use for ordinary Python packages or modifications to an existing repository.
 ---
 
 # Create MLOps Project
@@ -10,9 +10,9 @@ existing project or treat a previous repository as a template.
 
 ## Gather the contract
 
-Confirm or safely infer the project name, importable package name, empty destination,
-problem type, data sources, target, framework, primary metric, acceptance thresholds,
-Python version, coverage target, and one profile:
+Confirm or safely infer these inputs before generating files: project name, importable
+package name, empty destination, problem type, data sources, target, framework, primary
+metric, acceptance thresholds, Python version, coverage target, and one profile:
 
 - `python-ml`: local Python ML project without MLflow or Databricks.
 - `mlflow-local`: local project with MLflow tracking, evaluation, artifacts, and optional
@@ -20,8 +20,8 @@ Python version, coverage target, and one profile:
 - `databricks-mlops`: local development plus MLflow, Unity Catalog, Databricks Asset
   Bundles, Jobs, approval gates, Model Serving, and smoke tests.
 
-Ask only for choices that materially change the result. Default to Python 3.12, `uv`,
-85% coverage, and the smallest profile that satisfies the request.
+Ask only for missing choices that materially change the result. Default to Python 3.12,
+`uv`, 85% coverage, and the smallest profile that satisfies the request.
 
 ## Create safely
 
@@ -33,16 +33,16 @@ Ask only for choices that materially change the result. Default to Python 3.12, 
 4. For `mlflow-local`, also read [MLflow](references/mlflow.md).
 5. For `databricks-mlops`, read both [MLflow](references/mlflow.md) and
    [Databricks](references/databricks.md).
-6. Generate the project from the selected standards and the user's domain contract.
-   Keep notebooks thin and place reusable logic in the Python package.
+6. Generate the project from the selected standards and the user's domain contract. Keep
+   notebooks thin and place reusable logic in the Python package.
 7. Record the chosen profile in `.mlops-profile` so validation is reproducible.
 8. Run `scripts/validate_project.py <destination> --profile <profile>` from this skill.
 9. Run every applicable local quality command, fix failures, and repeat validation.
 
 ## Completion contract
 
-Report created components, assumptions, commands run, successful checks, failed checks,
-and external checks not run. Never report Databricks, registry, serving, or other external
-validation as successful without actually executing it against authorized infrastructure.
-Do not expose secrets or initialize a remote repository unless the user separately asks.
-
+Return created components, assumptions, the selected profile, commands run, successful
+checks, failed checks, and external checks not run. Never report Databricks, registry,
+serving, or other external validation as successful without executing it against
+authorized infrastructure. Do not expose secrets or initialize a remote repository unless
+the user separately asks.

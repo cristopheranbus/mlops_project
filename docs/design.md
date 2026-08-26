@@ -19,23 +19,26 @@ deben conservarse al modificarlo.
 Petición del usuario
        │
        ▼
-SKILL.md ────────────────┐
+skills/create-mlops-project/SKILL.md ─────┐
        │                 │ carga selectiva
        ▼                 ▼
-Contrato          references/*.md
+Contrato          skills/create-mlops-project/references/*.md
        │                 │
        └────────┬────────┘
                 ▼
         Proyecto generado
                 │
                 ▼
- scripts/validate_project.py
+ skills/create-mlops-project/scripts/validate_project.py
                 │
                 ▼
        Gates locales y reporte
 ```
 
-### `SKILL.md`
+La raíz contiene `.codex-plugin/plugin.json`, que declara la versión, presentación y ruta
+`./skills/` para distribución como plugin.
+
+### `skills/create-mlops-project/SKILL.md`
 
 Es el contrato ejecutivo. Define:
 
@@ -50,32 +53,32 @@ Es el contrato ejecutivo. Define:
 Debe permanecer enfocado. Un detalle extenso que no cambie el orden de ejecución suele
 pertenecer a `references/` o `docs/`.
 
-### `references/architecture.md`
+### `skills/create-mlops-project/references/architecture.md`
 
 Define la arquitectura mínima de los proyectos generados: layout `src`, fronteras entre
 componentes, configuración neutral, camino local y separación de etapas productivas.
 
-### `references/quality.md`
+### `skills/create-mlops-project/references/quality.md`
 
 Define reproducibilidad, packaging, gates, CI e higiene del repositorio. Es normativo: un
 proyecto no debe debilitar estas reglas sin una razón explícita y documentada.
 
-### `references/testing.md`
+### `skills/create-mlops-project/references/testing.md`
 
 Describe capas de pruebas, aislamiento, marcadores y expectativas de cobertura. Protege
 contra suites que solo elevan el porcentaje sin validar comportamiento.
 
-### `references/mlflow.md`
+### `skills/create-mlops-project/references/mlflow.md`
 
 Se carga para `mlflow-local` y `databricks-mlops`. Define tracking, artefactos, firma,
 evaluación independiente, aliases y aislamiento de pruebas.
 
-### `references/databricks.md`
+### `skills/create-mlops-project/references/databricks.md`
 
 Solo se necesita para `databricks-mlops`. Define bundles, targets, Unity Catalog, Jobs,
 serving, aprobación, smoke tests y rollback.
 
-### `scripts/validate_project.py`
+### `skills/create-mlops-project/scripts/validate_project.py`
 
 Es un validador estructural sin efectos sobre el proyecto analizado. Recibe una raíz y un
 perfil, resuelve el contrato esperado y devuelve issues tipados por severidad y código.
@@ -86,7 +89,7 @@ Construye proyectos mínimos en directorios temporales. Las pruebas cubren camin
 archivos faltantes, configuración incompleta, placeholders, nombres sensibles, perfiles y
 la garantía de no modificación.
 
-### `agents/openai.yaml`
+### `skills/create-mlops-project/agents/openai.yaml`
 
 Contiene nombre visible, descripción corta y prompt sugerido. Debe permanecer alineado con
 el `name` y el alcance descritos en `SKILL.md`.
@@ -207,6 +210,6 @@ especializadas que pertenecen al proyecto generado.
 
 ### La documentación normativa se separa de la guía
 
-`references/` define lo que la skill debe aplicar. `docs/` explica cómo usar y mantener
-el repositorio. Esta separación evita convertir `SKILL.md` en un manual difícil de seguir.
-
+`skills/create-mlops-project/references/` define lo que la skill debe aplicar. `docs/`
+explica cómo usar y mantener el repositorio. Esta separación evita convertir `SKILL.md`
+en un manual difícil de seguir.

@@ -27,7 +27,8 @@ uv build
 
 ## Impacto y compatibilidad
 
-- ¿Cambia `SKILL.md`, un perfil, un código de issue o la estructura generada?
+- ¿Cambia `skills/create-mlops-project/SKILL.md`, un perfil, un código de issue o la
+  estructura generada?
 - ¿Rompe compatibilidad con proyectos o consumidores existentes?
 - ¿Requiere migración, actualización documental o una nueva versión?
 
@@ -42,4 +43,3 @@ uv build
 - [ ] Las validaciones externas se distinguen de las locales.
 - [ ] Los cambios incompatibles y pasos de migración están documentados.
 - [ ] El PR está listo para revisión de `@cristopheranbus`.
-

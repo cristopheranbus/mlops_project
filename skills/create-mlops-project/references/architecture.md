@@ -26,4 +26,3 @@ and `docs/testing.md`. Add `docs/mlflow.md` for MLflow profiles. Add
 Document where each component executes, which system is authoritative, what can run
 locally, and which validations require credentials. Do not generate Databricks resources
 for projects that selected a smaller profile.
-

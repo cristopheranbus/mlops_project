@@ -5,20 +5,22 @@ build-backend = "hatchling.build"
 [project]
 name = "create-mlops-project-skill"
 version = "0.1.0"
-description = "Validation utilities for the create-mlops-project Codex skill."
+description = "Validation utilities for the create-mlops-project Codex plugin."
 requires-python = ">=3.12,<3.14"
 dependencies = []
 
 [dependency-groups]
 dev = [
     "mypy>=1.17,<2",
+    "pyyaml>=6.0.2,<7",
     "pytest>=8.4,<9",
     "pytest-cov>=6.2,<7",
     "ruff>=0.12,<0.13",
+    "types-pyyaml>=6.0.12,<7",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["scripts"]
+packages = ["skills/create-mlops-project/scripts"]
 
 [tool.ruff]
 target-version = "py312"
@@ -30,16 +32,16 @@ select = ["E", "F", "I", "B", "UP", "SIM"]
 
 [tool.mypy]
 python_version = "3.12"
-files = ["scripts", "tests"]
+files = ["skills/create-mlops-project/scripts", "tests"]
 strict = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --cov=scripts --cov-report=term-missing --cov-fail-under=85"
+addopts = "-ra --cov=skills/create-mlops-project/scripts --cov-report=term-missing --cov-fail-under=85"
 
 [tool.coverage.run]
 branch = true
-source = ["scripts"]
+source = ["skills/create-mlops-project/scripts"]
 
 [tool.coverage.report]
 show_missing = true

@@ -40,7 +40,7 @@ uv run mypy --version
 ## Flujo de trabajo
 
 1. crea un fork o una rama con un propósito concreto;
-2. revisa `SKILL.md` y la referencia normativa relacionada;
+2. revisa `skills/create-mlops-project/SKILL.md` y la referencia normativa relacionada;
 3. implementa el cambio más pequeño que resuelva el problema;
 4. agrega o ajusta pruebas;
 5. actualiza la documentación pública;
@@ -76,7 +76,7 @@ probar decisiones, errores y contratos relevantes.
 
 ## Cambiar `SKILL.md`
 
-`SKILL.md` debe responder con claridad:
+`skills/create-mlops-project/SKILL.md` debe responder con claridad:
 
 - cuándo se activa la skill;
 - qué información necesita;
@@ -87,13 +87,16 @@ probar decisiones, errores y contratos relevantes.
 - qué debe reportar.
 
 Evita convertirlo en documentación enciclopédica. Mueve estándares extensos a
-`references/` y explicaciones para personas a `docs/`.
+`skills/create-mlops-project/references/` y explicaciones para personas a `docs/`.
 
-Si cambia `name` o el alcance, actualiza también `agents/openai.yaml`, README y ejemplos.
+Si cambia `name` o el alcance, actualiza también
+`skills/create-mlops-project/agents/openai.yaml`, el manifiesto del plugin, README y
+ejemplos.
 
 ## Cambiar referencias normativas
 
-Una referencia bajo `references/` guía la generación. Al modificarla:
+Una referencia bajo `skills/create-mlops-project/references/` guía la generación. Al
+modificarla:
 
 1. identifica los perfiles afectados;
 2. confirma que la regla puede cumplirse localmente o declara su frontera externa;
@@ -149,7 +152,7 @@ Revisa como mínimo:
 - fixture `_valid_project`;
 - caso completo válido;
 - caso incompleto;
-- `SKILL.md`;
+- `skills/create-mlops-project/SKILL.md`;
 - referencias normativas;
 - README;
 - `docs/profiles.md`;
@@ -236,3 +239,8 @@ Clarify external test boundaries
 
 Evita mezclar una refactorización amplia, cambios de contrato y documentación no
 relacionada en un solo commit cuando pueden revisarse por separado.
+
+## Licencia de contribuciones
+
+Salvo que una contribución se marque explícitamente de otra manera antes de su aceptación,
+se incorpora bajo Apache License 2.0, de acuerdo con la sección 5 de [LICENSE](LICENSE).

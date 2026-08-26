@@ -19,7 +19,10 @@ la salida completa.
 3. revisa que el frontmatter YAML contenga `name` y `description` válidos;
 4. evita una carpeta duplicada por un clone mal ubicado;
 5. abre una sesión nueva después de instalar o actualizar;
-6. comprueba que la carpeta configurada sea la que usa tu instalación de Codex.
+6. para una instalación personal, comprueba que la carpeta esté bajo
+   `$HOME/.agents/skills`;
+7. si instalaste el plugin, comprueba su estado en Codex y prueba en una conversación
+   nueva.
 
 Estructura esperada:
 
@@ -145,7 +148,7 @@ errores de comillas:
 
 ```powershell
 Resolve-Path C:\ruta\al\proyecto
-uv run python scripts/validate_project.py C:\ruta\al\proyecto
+uv run python skills/create-mlops-project/scripts/validate_project.py C:\ruta\al\proyecto
 ```
 
 Si la ruta contiene espacios, escríbela entre comillas.
@@ -269,4 +272,3 @@ Incluye:
 - si el fallo ocurre en local, CI o infraestructura externa.
 
 No adjuntes `.env`, tokens, perfiles de Databricks ni claves privadas.
-

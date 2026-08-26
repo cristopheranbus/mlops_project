@@ -16,4 +16,3 @@
   test. Preserve the previous Champion and document rollback.
 - Include operational, release, and rollback instructions and identify which checks need
   a live workspace.
-

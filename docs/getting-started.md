@@ -7,13 +7,16 @@ verificado. Para comprender las diferencias entre perfiles, consulta
 
 ## 1. Entender qué se instala
 
-La instalación agrega a Codex una skill llamada `create-mlops-project`. La skill contiene:
+La instalación agrega a Codex una skill llamada `create-mlops-project`. En este repositorio
+la skill vive bajo `skills/create-mlops-project/` y contiene:
 
 - `SKILL.md`: contrato de activación y procedimiento principal;
 - `references/`: estándares que guían la arquitectura, calidad, pruebas e integraciones;
 - `scripts/validate_project.py`: verificador estructural de los proyectos generados;
-- `tests/`: pruebas del verificador;
 - `agents/openai.yaml`: metadatos de presentación.
+
+Las pruebas y la documentación de mantenimiento permanecen en la raíz del plugin; no se
+cargan como instrucciones de la skill instalada.
 
 La skill no instala MLflow o Databricks globalmente y no crea recursos externos durante
 su instalación. Las dependencias específicas pertenecen al proyecto que se genere.
@@ -34,31 +37,48 @@ conserva las versiones resueltas de las dependencias de desarrollo.
 
 ## 3. Instalar desde Git
 
-Clona el repositorio de forma que `SKILL.md` quede directamente dentro de la carpeta
-`create-mlops-project`:
-
-```powershell
-git clone https://github.com/cristopheranbus/mlops_project.git `
-  "$env:CODEX_HOME\skills\create-mlops-project"
-```
-
-La forma esperada es:
+La [guía oficial de skills de Codex](https://learn.chatgpt.com/docs/build-skills) documenta
+`$HOME/.agents/skills` como ubicación personal y `.agents/skills` como ubicación dentro de
+un repositorio. Este proyecto también sigue la estructura de
+[plugin oficial](https://learn.chatgpt.com/docs/build-plugins):
 
 ```text
-create-mlops-project/
-├── SKILL.md
-├── agents/
-├── references/
-├── scripts/
-└── tests/
+mlops_project/
+├── .codex-plugin/
+│   └── plugin.json
+└── skills/
+    └── create-mlops-project/
+        ├── SKILL.md
+        ├── agents/
+        ├── references/
+        └── scripts/
 ```
 
-Una anidación accidental como `create-mlops-project/mlops_project/SKILL.md` puede impedir
-que el entorno encuentre el archivo en el nivel esperado.
+### Instalación mediante el instalador integrado
 
-Si `CODEX_HOME` no está definido, localiza el directorio de configuración de Codex usado
-por tu instalación y coloca allí la carpeta bajo `skills/`. Después abre una sesión nueva
-para forzar un nuevo descubrimiento.
+Después de publicar el repositorio, solicita:
+
+```text
+Usa $skill-installer para instalar create-mlops-project desde
+https://github.com/cristopheranbus/mlops_project/tree/main/skills/create-mlops-project
+```
+
+### Instalación manual para desarrollo
+
+Clona el repositorio en una carpeta de trabajo:
+
+```powershell
+git clone https://github.com/cristopheranbus/mlops_project.git
+```
+
+Copia `skills/create-mlops-project/` hacia
+`$HOME/.agents/skills/create-mlops-project/`, o crea un enlace simbólico si tu entorno lo
+permite. Codex sigue enlaces simbólicos en las ubicaciones documentadas. Para una skill
+compartida únicamente dentro de otro repositorio, usa
+`<repo>/.agents/skills/create-mlops-project/`.
+
+Codex detecta cambios automáticamente. Si la actualización no aparece, inicia una sesión
+nueva.
 
 ## 4. Actualizar una instalación existente
 
@@ -194,7 +214,8 @@ uv build
 Ejecuta además el validador desde este repositorio:
 
 ```powershell
-uv run python scripts/validate_project.py C:\ruta\destino --profile auto
+uv run python skills/create-mlops-project/scripts/validate_project.py `
+  C:\ruta\destino --profile auto
 ```
 
 El validador confirma estructura, no comportamiento. Consulta
@@ -219,4 +240,3 @@ Después de una generación exitosa:
 La desinstalación consiste en retirar la carpeta instalada de skills. Antes de hacerlo,
 comprueba la ruta exacta y conserva cambios propios si existen. Eliminar la skill no borra
 los proyectos que ella haya generado: son repositorios independientes.
-

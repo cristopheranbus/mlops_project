@@ -38,4 +38,3 @@ Ignore virtual environments, caches, coverage output, local tracking stores, art
 models, large data, notebook checkpoints, local credentials, and build output. Never
 commit tokens, private keys, Databricks profiles, service-principal secrets, or production
 host configuration. Do not declare completion while a required local gate fails.
-

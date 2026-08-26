@@ -95,31 +95,25 @@ fronteras de ejecución, artefactos y caminos de evolución.
 - [`uv`](https://docs.astral.sh/uv/) para resolver dependencias y ejecutar los controles.
 - Credenciales externas únicamente si se solicita validar infraestructura real.
 
-### 2. Instalar la skill
+### 2. Instalar para uso personal
 
-Clona el repositorio en la carpeta de skills personales de Codex y conserva
-`create-mlops-project` como nombre del directorio:
+La [documentación oficial de Codex sobre skills](https://learn.chatgpt.com/docs/build-skills)
+indica que las skills personales se descubren bajo `$HOME/.agents/skills`. Clona el
+repositorio en una carpeta de desarrollo y copia o enlaza la skill contenida en
+`skills/create-mlops-project/` hacia esa ubicación.
 
-```powershell
-git clone https://github.com/cristopheranbus/mlops_project.git `
-  "$env:CODEX_HOME\skills\create-mlops-project"
-```
-
-Si tu instalación no define `CODEX_HOME`, usa el directorio de configuración de Codex
-correspondiente a tu entorno. El archivo `SKILL.md` debe quedar en la raíz de la carpeta:
+También puedes pedirle al instalador integrado que use la carpeta de la skill publicada:
 
 ```text
-skills/
-└── create-mlops-project/
-    ├── SKILL.md
-    ├── agents/
-    ├── references/
-    ├── scripts/
-    └── tests/
+Usa $skill-installer para instalar create-mlops-project desde
+https://github.com/cristopheranbus/mlops_project/tree/main/skills/create-mlops-project
 ```
 
-Después de instalar o actualizar la skill, inicia una nueva sesión de Codex para que el
-entorno vuelva a descubrir sus instrucciones.
+Codex detecta cambios automáticamente; si la actualización no aparece, inicia una sesión
+nueva. Para compartir una capacidad estable, OpenAI recomienda distribuirla como plugin.
+Este repositorio incluye el manifiesto oficial `.codex-plugin/plugin.json` y la skill bajo
+`skills/`, según la
+[documentación oficial de plugins](https://learn.chatgpt.com/docs/build-plugins).
 
 ### 3. Invocarla
 
@@ -205,15 +199,16 @@ estructurales de un proyecto generado:
 
 ```powershell
 uv sync --dev
-uv run python scripts/validate_project.py C:\ruta\al\proyecto --profile auto
+uv run python skills/create-mlops-project/scripts/validate_project.py `
+  C:\ruta\al\proyecto --profile auto
 ```
 
 Perfiles explícitos:
 
 ```powershell
-uv run python scripts/validate_project.py C:\ruta\al\proyecto --profile python-ml
-uv run python scripts/validate_project.py C:\ruta\al\proyecto --profile mlflow-local
-uv run python scripts/validate_project.py C:\ruta\al\proyecto --profile databricks-mlops
+uv run python skills/create-mlops-project/scripts/validate_project.py C:\ruta\al\proyecto --profile python-ml
+uv run python skills/create-mlops-project/scripts/validate_project.py C:\ruta\al\proyecto --profile mlflow-local
+uv run python skills/create-mlops-project/scripts/validate_project.py C:\ruta\al\proyecto --profile databricks-mlops
 ```
 
 El validador revisa rutas requeridas, configuración de herramientas, paquete bajo `src`,
@@ -234,14 +229,17 @@ alcance completo y cada código de error están documentados en
 | [Contrato del proyecto](docs/project-contract.md) | Entradas, estructura y criterios de completitud | Usuarios y revisores |
 | [Diseño interno](docs/design.md) | Componentes de esta skill y flujo del validador | Mantenedores |
 | [Validación](docs/validation.md) | CLI, reglas, códigos, límites y CI | Usuarios y mantenedores |
+| [Evaluación](docs/evaluation.md) | Casos de activación explícita, implícita y negativa | Mantenedores |
 | [Ejemplos](docs/examples.md) | Solicitudes completas para casos frecuentes | Usuarios |
 | [Solución de problemas](docs/troubleshooting.md) | Fallos comunes y diagnóstico | Todos |
 | [Gobernanza](docs/governance.md) | PRs, revisión, protección de `main` y notificaciones | Contribuidores y mantenedores |
 | [Contribución](CONTRIBUTING.md) | Desarrollo, pruebas y cambios de reglas | Contribuidores |
 | [Seguridad](SECURITY.md) | Credenciales, reportes y respuesta ante filtraciones | Todos |
 
-Los archivos bajo [`references/`](references/) son estándares normativos consumidos por
-la propia skill. Los documentos bajo [`docs/`](docs/) explican cómo usarla y mantenerla.
+Los archivos bajo
+[`skills/create-mlops-project/references/`](skills/create-mlops-project/references/) son
+estándares normativos consumidos por la propia skill. Los documentos bajo [`docs/`](docs/)
+explican cómo usarla y mantenerla.
 
 ## Desarrollo de la skill
 
@@ -290,5 +288,5 @@ owner global para recibir solicitudes de revisión. Antes de abrir un PR, consul
 
 ## Licencia
 
-El repositorio todavía no incluye un archivo de licencia. Antes de distribuirlo o aceptar
-contribuciones externas, define y agrega una licencia compatible con el uso previsto.
+Distribuido bajo [Apache License 2.0](LICENSE). Las contribuciones aceptadas se incorporan
+bajo los términos descritos en esa licencia.

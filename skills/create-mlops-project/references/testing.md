@@ -37,4 +37,3 @@ Default to 85% coverage, configurable by the user. Prioritize high coverage for
 configuration, contracts, gates, deployment decisions, and rollback logic. Do not add
 tests that merely repeat implementation details or inflate the percentage without
 checking behavior.
-

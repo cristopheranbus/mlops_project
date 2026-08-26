@@ -1,0 +1,33 @@
+{
+  "name": "create-mlops-project",
+  "version": "0.1.0",
+  "description": "Create production-oriented Python ML and MLOps repositories with validated local, MLflow, or Databricks profiles.",
+  "author": {
+    "name": "cristopheranbus",
+    "url": "https://github.com/cristopheranbus"
+  },
+  "homepage": "https://github.com/cristopheranbus/mlops_project#readme",
+  "repository": "https://github.com/cristopheranbus/mlops_project",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "machine-learning",
+    "mlops",
+    "mlflow",
+    "databricks"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Create MLOps Project",
+    "shortDescription": "Create tested, production-ready ML repositories.",
+    "longDescription": "Generate a new Python ML repository from a domain contract, selecting a local, MLflow, or Databricks profile with quality gates, tests, CI, validation, and operational documentation.",
+    "developerName": "cristopheranbus",
+    "category": "Productivity",
+    "capabilities": [],
+    "websiteURL": "https://github.com/cristopheranbus/mlops_project",
+    "defaultPrompt": [
+      "Create a production-ready ML project from my problem contract."
+    ]
+  }
+}
+

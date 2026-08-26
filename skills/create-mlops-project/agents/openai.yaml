@@ -3,3 +3,5 @@ interface:
   short_description: "Create tested, production-ready ML projects"
   default_prompt: "Use $create-mlops-project to create a new ML project with quality gates and automated testing."
 
+policy:
+  allow_implicit_invocation: true

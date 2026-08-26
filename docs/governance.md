@@ -78,7 +78,7 @@ los controles aplicables.
 
 Los siguientes cambios requieren atención adicional:
 
-- modificación de `SKILL.md` o su descripción de activación;
+- modificación de `skills/create-mlops-project/SKILL.md` o su descripción de activación;
 - cambios en perfiles o rutas requeridas;
 - cambios de códigos de issue del validador;
 - permisos de GitHub Actions;
