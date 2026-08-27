@@ -7,18 +7,30 @@ verificable y operable, con una complejidad proporcional al entorno donde se eje
 > Este repositorio contiene la **skill, sus estándares y su validador**. No contiene un
 > dataset, un modelo entrenado ni una solución ML de dominio lista para desplegar.
 
-## Contenido
+## Primer resultado en cinco minutos
 
-- [Qué problema resuelve](#qué-problema-resuelve)
-- [Qué genera](#qué-genera)
-- [Perfiles disponibles](#perfiles-disponibles)
-- [Inicio rápido](#inicio-rápido)
-- [Cómo formular una solicitud útil](#cómo-formular-una-solicitud-útil)
-- [Flujo de trabajo](#flujo-de-trabajo)
-- [Validación](#validación)
-- [Documentación detallada](#documentación-detallada)
-- [Desarrollo de la skill](#desarrollo-de-la-skill)
-- [Seguridad y límites](#seguridad-y-límites)
+Necesitas Git, Python 3.12 o 3.13 y [`uv`](https://docs.astral.sh/uv/). El primer recorrido
+es completamente local y no requiere Databricks ni credenciales.
+
+```text
+git clone https://github.com/cristopheranbus/mlops_project.git
+cd mlops_project
+uv sync --locked --dev
+uv run pytest --basetemp .pytest-tmp
+```
+
+Resultado esperado: todas las pruebas pasan y la cobertura es al menos 85%. Después pide
+a Codex:
+
+```text
+Usa $create-mlops-project para crear ./first_ml_project. Es una clasificación binaria
+con datos CSV, target accepted, scikit-learn, ROC AUC y perfil python-ml. Incluye un
+primer entrenamiento local con datos sintéticos y sin credenciales.
+```
+
+El proyecto resultante explica cómo instalar dependencias, entrenar, cambiar configuración
+y ejecutar pruebas. Si nunca has contribuido a un repositorio, sigue el
+[tutorial inicial completo](docs/beginner-tutorial.md).
 
 ## Qué problema resuelve
 
@@ -57,18 +69,36 @@ proyecto_ml/
 ├── pyproject.toml
 ├── uv.lock
 ├── configs/
+│   ├── base.yaml
+│   ├── local.yaml
+│   ├── dev.yaml
+│   └── prod.yaml
+├── notebooks/
+│   ├── databricks/
+│   └── exploration/
 ├── docs/
 │   ├── architecture.md
 │   ├── configuration.md
 │   └── testing.md
 ├── src/
 │   └── paquete_ml/
+│       ├── config/
+│       ├── data/
+│       ├── features/
+│       ├── modeling/
+│       ├── tracking/
+│       └── workflows/
 └── tests/
 ```
 
 Los perfiles con MLflow y Databricks agregan contratos de tracking, evaluación,
 registro, despliegue y operación. La estructura detallada está en
 [Contrato del proyecto generado](docs/project-contract.md).
+
+Hay un solo paquete principal. Toda función productiva vive bajo `src/<package>/`; los
+notebooks únicamente reciben parámetros e invocan workflows. La configuración se valida
+con Pydantic y cada ejecución conserva el entorno, los overrides, un hash SHA-256 y
+`resolved_config.yaml` sin secretos.
 
 ## Perfiles disponibles
 
@@ -225,6 +255,10 @@ alcance completo y cada código de error están documentados en
 | Documento | Contenido | Audiencia principal |
 | --- | --- | --- |
 | [Guía de inicio](docs/getting-started.md) | Instalación, primera generación y actualización | Usuarios nuevos |
+| [Tutorial inicial](docs/beginner-tutorial.md) | Desde instalar herramientas hasta el primer PR | Principiantes |
+| [Configuración](docs/configuration.md) | Perfiles YAML, Pydantic, overrides, secretos y hash | Usuarios y ML engineers |
+| [Notebooks y MLflow](docs/notebooks-mlflow.md) | Notebook-first, workflows, autolog y trazabilidad | ML engineers y Databricks |
+| [Migración v0.1.0](docs/migration-v0.1.md) | Adopción del nuevo contrato | Mantenedores |
 | [Perfiles](docs/profiles.md) | Selección, capacidades, fronteras y evolución | Tech leads y ML engineers |
 | [Contrato del proyecto](docs/project-contract.md) | Entradas, estructura y criterios de completitud | Usuarios y revisores |
 | [Diseño interno](docs/design.md) | Componentes de esta skill y flujo del validador | Mantenedores |

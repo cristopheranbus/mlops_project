@@ -37,3 +37,31 @@ def test_documentation_index_lists_every_guide() -> None:
 
     missing = [name for name in guides if f"({name})" not in index]
     assert missing == []
+
+
+def test_beginner_documentation_covers_first_local_path() -> None:
+    tutorial = (DOCS / "beginner-tutorial.md").read_text(encoding="utf-8")
+    required = (
+        "Git",
+        "Python",
+        "uv",
+        "primera prueba",
+        "--environment local",
+        "error del validador",
+        "pull request",
+    )
+
+    assert all(term.lower() in tutorial.lower() for term in required)
+
+
+def test_runtime_contract_guides_cover_public_interfaces() -> None:
+    configuration = (DOCS / "configuration.md").read_text(encoding="utf-8")
+    tracking = (DOCS / "notebooks-mlflow.md").read_text(encoding="utf-8")
+
+    assert all(
+        term in configuration
+        for term in ("AppConfig", "load_config", "config_hash", "resolved_config.yaml")
+    )
+    assert all(
+        term in tracking for term in ("start_experiment_run", "mlflow.autolog", "notebook_task")
+    )

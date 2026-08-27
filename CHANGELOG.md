@@ -7,6 +7,23 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Typed YAML configuration contract with `local`, `dev`, and `prod` environments,
+  deterministic hashes, runtime overrides, and secret separation.
+- Notebook-first Databricks layout and centralized MLflow run management with autolog.
+- Immediate validator rules for configuration, Python, notebooks, Databricks tasks, and
+  MLflow run boundaries.
+- Beginner tutorial, configuration guide, notebooks and MLflow guide, and migration guide
+  from `v0.1.0`.
+
+### Changed
+
+- Generated projects now use exactly one primary package and keep all production Python
+  logic under `src/<package>/`.
+- Documentation navigation now provides dedicated paths for beginners, ML engineers,
+  Databricks users, contributors, and maintainers.
+
 ## [0.1.0] - 2026-08-26
 
 ### Added
@@ -21,4 +38,3 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [Unreleased]: https://github.com/cristopheranbus/mlops_project/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/cristopheranbus/mlops_project/releases/tag/v0.1.0
-

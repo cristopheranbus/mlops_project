@@ -84,8 +84,11 @@ Además:
 
 - `pyproject.toml` debe ser TOML válido;
 - deben existir tablas de configuración para Ruff, mypy, pytest y coverage;
-- debe haber al menos un directorio de paquete bajo `src`;
+- debe haber exactamente un directorio de paquete bajo `src`;
 - debe existir al menos un archivo `test_*.py` bajo `tests`.
+- deben existir `configs/base.yaml`, `configs/local.yaml` y los módulos tipados de config;
+- Pydantic y PyYAML deben ser dependencias de runtime;
+- no puede haber lógica Python productiva fuera del paquete principal.
 
 ## Reglas de `mlflow-local`
 
@@ -94,6 +97,9 @@ Además de las comunes:
 - alguna dependencia declarada debe comenzar por `mlflow`;
 - debe existir `docs/mlflow.md`;
 - debe existir `tests/integration`.
+- debe existir `tracking/mlflow.py` con el único `start_run` permitido;
+- el wrapper debe activar `autolog` antes de entregar control y registrar la configuración;
+- los workflows deben usar `start_experiment_run`.
 
 La búsqueda de dependencias cubre `project.dependencies`, grupos opcionales y
 `dependency-groups`.
@@ -111,8 +117,9 @@ docs/rollback.md
 tests/external
 ```
 
-El script solo comprueba la presencia estructural. No interpreta el bundle ni llama al
-workspace.
+El script comprueba además perfiles `dev` y `prod`, formatos de notebooks, imports de
+workflows y rutas `notebook_task` del bundle. No llama al workspace ni demuestra que el
+Job pueda ejecutarse.
 
 ## Escaneo textual
 
@@ -149,6 +156,14 @@ escáner de secretos apropiado para tu organización.
 | `quality-config` | Falta Ruff, mypy o pytest en `[tool]` | Agregar configuración y ejecutar la herramienta |
 | `coverage-config` | Falta `[tool.coverage]` | Definir fuente, branch coverage y reporte |
 | `package` | No hay directorio importable bajo `src` | Crear el paquete y configurar el build |
+| `config-layout` | Faltan perfiles, módulos de configuración o dependencias | Crear la estructura tipada requerida |
+| `config-format` | YAML inválido, versión incorrecta o perfil no mapping | Corregir el archivo y validar con `load_config` |
+| `config-secret` | Una clave YAML parece contener un secreto | Retirarla y usar variables o Secret Scopes |
+| `python-layout` | Hay más de un paquete o lógica productiva fuera de `src` | Consolidar código en el paquete principal |
+| `notebook-layout` | Ruta, formato duplicado o contenido no productivo | Mover o retirar el notebook incorrecto |
+| `notebook-format` | Source marker, nbformat, outputs o imports inválidos | Limpiar el notebook y delegar al workflow |
+| `databricks-task` | El bundle no usa un notebook productivo existente | Corregir `notebook_task.notebook_path` |
+| `mlflow-run` | Wrapper incompleto o llamada directa a `start_run` | Centralizar el run y ordenar autolog/configuración |
 | `tests` | No existe ningún `test_*.py` | Agregar pruebas que validen comportamiento |
 | `mlflow` | El perfil necesita MLflow pero no está declarado | Agregar dependencia restringida y actualizar lock |
 | `placeholder` | Quedó contenido sin adaptar | Sustituirlo por valores del dominio |
@@ -196,8 +211,8 @@ El script no valida:
 - cobertura realmente alcanzada;
 - validez semántica completa de `pyproject.toml`;
 - contenido de workflows de CI;
-- firmas MLflow, artefactos o aliases;
-- sintaxis o despliegue de Asset Bundles;
+- contenido real de firmas MLflow, artefactos o aliases;
+- semántica completa o despliegue de Asset Bundles;
 - permisos, identidades o secretos del workspace;
 - disponibilidad de endpoints;
 - ausencia total de secretos.

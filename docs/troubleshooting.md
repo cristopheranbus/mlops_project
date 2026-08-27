@@ -199,6 +199,40 @@ rutas manipuladas manualmente.
 El validador busca `test_*.py` de forma recursiva bajo `tests`. Agrega pruebas reales. Un
 archivo vacío puede eliminar el issue estructural, pero no cumplirá cobertura ni calidad.
 
+## Errores `config-layout`, `config-format` o `config-secret`
+
+Comprueba `configs/base.yaml`, `configs/local.yaml` y, para Databricks, `dev.yaml` y
+`prod.yaml`. Cada uno debe ser un mapping con `config_version: 1`. No coloques tokens,
+passwords ni claves en YAML; usa variables de entorno o Secret Scopes. Si el archivo es
+válido pero Pydantic falla, revisa tipos estrictos y claves desconocidas en
+[Configuración](configuration.md).
+
+## Error `python-layout`
+
+Debe existir un único paquete principal bajo `src/`. Mueve funciones, clases,
+transformaciones y reglas productivas a ese paquete. Los tests pueden mantener helpers y
+fixtures bajo `tests/`; los notebooks no.
+
+## Errores `notebook-layout` o `notebook-format`
+
+Los notebooks productivos viven en `notebooks/databricks/`. Un `.py` necesita el marcador
+Databricks en la primera línea; un `.ipynb` necesita nbformat 4, outputs vacíos y
+`execution_count: null`. No conserves dos formatos con el mismo nombre base ni definas
+funciones o clases dentro del notebook.
+
+## Error `databricks-task`
+
+Confirma que el bundle contiene al menos un `notebook_task` y que cada `notebook_path`
+apunta a un archivo existente bajo `notebooks/databricks/`. Las rutas de exploración y
+los notebooks inexistentes no son válidos.
+
+## Error `mlflow-run`
+
+Sólo `<package>/tracking/mlflow.py` puede llamar a `mlflow.start_run`. Implementa
+`start_experiment_run`, activa `mlflow.autolog` dentro del run y antes de `yield`, registra
+la configuración resuelta y úsalo desde cada workflow. Consulta
+[Notebooks y MLflow](notebooks-mlflow.md).
+
 ## Error `mlflow`
 
 El perfil requiere una dependencia cuyo nombre comience por `mlflow`. Agrégala con un
