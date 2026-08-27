@@ -30,6 +30,9 @@ extend-exclude = [".pytest-tmp"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["scripts"]
+
 [tool.mypy]
 python_version = "3.12"
 files = ["skills/create-mlops-project/scripts", "tests"]
