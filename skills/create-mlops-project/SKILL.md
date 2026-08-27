@@ -28,13 +28,15 @@ Ask only for missing choices that materially change the result. Default to Pytho
 1. Resolve the destination to an absolute path.
 2. Create a missing destination, but do not overwrite, delete, or repurpose a non-empty
    destination without explicit authorization.
-3. Read [architecture](references/architecture.md), [quality](references/quality.md), and
+3. Read [architecture](references/architecture.md),
+   [configuration](references/configuration.md), [quality](references/quality.md), and
    [testing](references/testing.md).
 4. For `mlflow-local`, also read [MLflow](references/mlflow.md).
 5. For `databricks-mlops`, read both [MLflow](references/mlflow.md) and
    [Databricks](references/databricks.md).
 6. Generate the project from the selected standards and the user's domain contract. Keep
-   notebooks thin and place reusable logic in the Python package.
+   one primary package under `src`, route reusable code through it, and make notebooks
+   thin entry points into package workflows.
 7. Record the chosen profile in `.mlops-profile` so validation is reproducible.
 8. Run `scripts/validate_project.py <destination> --profile <profile>` from this skill.
 9. Run every applicable local quality command, fix failures, and repeat validation.

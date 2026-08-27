@@ -61,6 +61,90 @@ No descartes ni reformatees cambios ajenos que no pertenezcan a tu contribución
 `@cristopheranbus` es code owner global y debe revisar los cambios antes del merge. La
 política completa está en [docs/governance.md](docs/governance.md).
 
+## Mi primera contribución
+
+El recorrido completo es:
+
+```text
+Fork → clone → branch → edit → test → commit → push → PR
+```
+
+1. crea un **fork**, tu copia remota del repositorio;
+2. haz **clone** para obtener una copia local;
+3. crea una **branch**, una línea aislada de trabajo;
+4. edita una sola responsabilidad y sus pruebas;
+5. ejecuta los gates;
+6. crea un **commit**, una unidad versionada con un mensaje descriptivo;
+7. haz **push** hacia tu fork;
+8. abre un **PR** (pull request) para revisión y espera que **CI** valide el cambio.
+
+Comandos mínimos con [GitHub CLI](https://cli.github.com/) autenticado:
+
+```text
+gh repo fork cristopheranbus/mlops_project --clone
+cd mlops_project
+git switch -c docs/my-first-change
+uv sync --locked --dev
+uv run pytest --basetemp .pytest-tmp
+git add docs README.md
+git commit -m "Clarify beginner documentation"
+git push -u origin docs/my-first-change
+```
+
+### Glosario breve
+
+| Concepto | Significado |
+| --- | --- |
+| fork | Copia remota personal desde la que propones cambios |
+| branch | Línea de trabajo separada de `main` |
+| commit | Snapshot revisable de cambios relacionados |
+| CI | Controles automáticos ejecutados por GitHub Actions |
+| PR | Solicitud para revisar e integrar una branch |
+| fixture | Preparación reutilizable de datos o archivos para una prueba |
+| profile | Contrato de capacidades: `python-ml`, `mlflow-local` o `databricks-mlops` |
+
+### Quiero cambiar X: ¿dónde empiezo?
+
+| Cambio | Archivos principales |
+| --- | --- |
+| Cómo actúa la skill | `skills/create-mlops-project/SKILL.md` |
+| Arquitectura generada | `skills/create-mlops-project/references/architecture.md` |
+| Configuración | `references/configuration.md`, `docs/configuration.md` |
+| MLflow o Databricks | `references/mlflow.md`, `references/databricks.md` |
+| Regla estructural | `scripts/validate_project.py`, `tests/test_validate_project.py` |
+| Guía pública | `docs/` y `docs/README.md` |
+| Dependencia | `pyproject.toml` y `uv.lock` |
+
+Las rutas `references/` y `scripts/` de la tabla están dentro de
+`skills/create-mlops-project/`.
+
+### Ejemplo de una regla nueva
+
+Supón que un archivo obligatorio debe contener `config_version: 1`:
+
+1. define el invariante en la referencia normativa;
+2. agrega un helper del validador que emita un código estable y mensaje accionable;
+3. prueba el caso positivo con el fixture válido intacto;
+4. prueba el caso negativo eliminando sólo `config_version`;
+5. documenta el código en `docs/validation.md` y troubleshooting;
+6. confirma `test_validation_does_not_modify_files`.
+
+Una prueba positiva demuestra que una entrada válida no genera el issue. Una negativa
+introduce una sola infracción y confirma el código esperado; no debe depender de red ni
+credenciales.
+
+### Leer fallos de herramientas
+
+- **Ruff:** el código al inicio identifica la regla y la ruta/línea indica dónde corregir.
+- **mypy:** compara el tipo recibido con el esperado; corrige el contrato en vez de usar
+  `Any` indiscriminadamente.
+- **pytest:** empieza por el primer traceback y el assert final; ejecuta una sola prueba
+  con `uv run pytest ruta::test_name -q` antes de repetir la suite completa.
+
+Si agregas una guía, enlázala desde `docs/README.md`. Antes del PR confirma: cambio
+pequeño, prueba positiva y negativa cuando corresponde, documentación actualizada, gates
+verdes y ausencia de secretos. Las secciones siguientes son la guía avanzada.
+
 ## Gates obligatorios
 
 ```powershell

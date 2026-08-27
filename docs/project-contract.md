@@ -76,7 +76,16 @@ proyecto_ml/
 ├── uv.lock
 ├── configs/
 │   ├── base.yaml
-│   └── local.yaml
+│   ├── local.yaml
+│   ├── dev.yaml
+│   └── prod.yaml
+├── notebooks/
+│   ├── databricks/
+│   │   ├── 10_prepare_data.py
+│   │   ├── 20_train.py
+│   │   ├── 30_evaluate.py
+│   │   └── 40_promote.py
+│   └── exploration/
 ├── docs/
 │   ├── architecture.md
 │   ├── configuration.md
@@ -84,29 +93,40 @@ proyecto_ml/
 ├── src/
 │   └── paquete_ml/
 │       ├── __init__.py
-│       ├── config.py
-│       ├── data.py
-│       ├── features.py
-│       ├── train.py
-│       ├── evaluate.py
-│       └── predict.py
+│       ├── config/
+│       │   ├── models.py
+│       │   ├── loader.py
+│       │   └── hashing.py
+│       ├── data/
+│       ├── features/
+│       ├── modeling/
+│       ├── tracking/
+│       │   └── mlflow.py
+│       └── workflows/
 └── tests/
     ├── unit/
     └── contract/
 ```
 
-Los nombres de módulos son orientativos. Por ejemplo, un problema de forecasting puede
-necesitar `splits.py` y `backtesting.py`; una librería de features quizá no necesite
-`predict.py`.
+Existe exactamente un paquete principal bajo `src/`. Los submódulos del dominio pueden
+adaptarse, pero `config/` y `workflows/` conservan sus responsabilidades. `dev.yaml`,
+`prod.yaml`, `notebooks/databricks/` y `databricks.yml` son obligatorios para el perfil
+Databricks; `notebooks/exploration/` es opcional y nunca lo ejecutan Jobs.
 
 ## Responsabilidades arquitectónicas
 
 ### Configuración
 
-- cargar valores versionados y overrides del entorno;
-- validar tipos y campos obligatorios;
+- cargar `base.yaml`, el entorno y overrides mediante `load_config`;
+- validar `config_version: 1`, tipos estrictos y campos obligatorios con Pydantic;
+- congelar modelos y rechazar claves adicionales;
+- reemplazar listas y escalares, y fusionar mappings recursivamente;
+- producir un hash SHA-256 estable y `resolved_config.yaml` sin secretos;
 - no contener secretos reales;
 - hacer visible qué cambia entre local, CI y producción.
+
+La interfaz pública es `AppConfig`, `load_config(environment, overrides)` y
+`config_hash(config)`. YAML nunca se lee directamente desde notebooks o workflows.
 
 ### Acceso a datos
 
@@ -147,6 +167,16 @@ necesitar `splits.py` y `backtesting.py`; una librería de features quizá no ne
 
 Los entry points coordinan componentes, pero no acumulan reglas de negocio. Un notebook,
 Job o CLI debe invocar funciones del paquete y mantener poca lógica propia.
+
+### Notebooks y tracking
+
+Los notebooks productivos aceptan source `.py` o nbformat 4 `.ipynb`, sin formatos
+duplicados, funciones, clases u outputs. El bundle apunta sólo a rutas bajo
+`notebooks/databricks/` mediante `notebook_task` e instala el wheel del paquete.
+
+En perfiles MLflow, sólo `tracking/mlflow.py` abre runs. `start_experiment_run` activa
+`autolog` dentro del run antes del entrenamiento, registra configuración y tags, y
+encapsula las métricas y artefactos manuales. Tuning usa runs anidados.
 
 ## Contrato de pruebas
 
@@ -200,6 +230,8 @@ Todos los perfiles incluyen:
 - `docs/architecture.md`: componentes, relaciones y fronteras de runtime;
 - `docs/configuration.md`: fuentes, precedencia y variables;
 - `docs/testing.md`: capas, marcadores y comandos.
+- primer entrenamiento local, mapa de carpetas, cambio de configuración, errores
+  frecuentes y pruebas previas a un PR.
 
 `mlflow-local` y `databricks-mlops` agregan `docs/mlflow.md`.
 
@@ -209,6 +241,9 @@ Todos los perfiles incluyen:
 - `docs/operations.md`;
 - `docs/release-checklist.md`;
 - `docs/rollback.md`.
+
+También explica cómo ejecutar un notebook, encontrar un run de MLflow, qué funciona sin
+credenciales y qué requiere un workspace Databricks.
 
 La documentación debe decir dónde corre cada componente, cuál sistema es autoritativo,
 qué funciona localmente y qué requiere credenciales.
@@ -237,4 +272,3 @@ Una generación está completa cuando:
 
 No se considera completa si falta una credencial necesaria para una comprobación requerida,
 si el build falla o si una prueba obligatoria fue omitida sin explicación.
-

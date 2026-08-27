@@ -6,10 +6,31 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 
 ### Quiero usar la skill por primera vez
 
-1. [Guía de inicio](getting-started.md)
-2. [Perfiles](profiles.md)
-3. [Ejemplos](examples.md)
-4. [Validación](validation.md)
+1. [Tutorial inicial paso a paso](beginner-tutorial.md)
+2. [Guía de inicio e instalación](getting-started.md)
+3. [Perfiles](profiles.md)
+4. [Ejemplos](examples.md)
+5. [Validación](validation.md)
+
+### Soy ML engineer
+
+1. [Contrato del proyecto generado](project-contract.md)
+2. [Configuración tipada](configuration.md)
+3. [Notebooks y MLflow](notebooks-mlflow.md)
+4. [Perfiles](profiles.md)
+
+### Trabajo con Databricks
+
+1. [Notebooks y MLflow](notebooks-mlflow.md)
+2. [Configuración tipada](configuration.md)
+3. [Perfil Databricks](profiles.md#perfil-databricks-mlops)
+4. [Contrato del proyecto](project-contract.md)
+
+### Quiero hacer mi primera contribución
+
+1. [Tutorial inicial](beginner-tutorial.md)
+2. [Mi primera contribución](../CONTRIBUTING.md#mi-primera-contribución)
+3. [Validación](validation.md)
 
 ### Quiero definir un proyecto correctamente
 
@@ -25,6 +46,7 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 4. [Gobernanza y revisión](governance.md)
 5. [Guía de contribución](../CONTRIBUTING.md)
 6. [Política de seguridad](../SECURITY.md)
+7. [Migración desde v0.1.0](migration-v0.1.md)
 
 ### Tengo un fallo
 
@@ -38,6 +60,7 @@ la generación viven bajo
 [`skills/create-mlops-project/references/`](../skills/create-mlops-project/references/):
 
 - [Arquitectura](../skills/create-mlops-project/references/architecture.md)
+- [Configuración](../skills/create-mlops-project/references/configuration.md)
 - [Calidad](../skills/create-mlops-project/references/quality.md)
 - [Pruebas](../skills/create-mlops-project/references/testing.md)
 - [MLflow](../skills/create-mlops-project/references/mlflow.md)

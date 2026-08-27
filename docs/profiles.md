@@ -26,6 +26,7 @@ ese entorno.
 | Capacidad | `python-ml` | `mlflow-local` | `databricks-mlops` |
 | --- | :---: | :---: | :---: |
 | Layout `src` | Sí | Sí | Sí |
+| Configuración YAML + Pydantic | Sí | Sí | Sí |
 | Ruff, mypy, pytest, cobertura y build | Sí | Sí | Sí |
 | CI localizable en GitHub Actions | Sí | Sí | Sí |
 | Documentación base | Sí | Sí | Sí |
@@ -60,6 +61,7 @@ ese entorno.
 - README y documentos de arquitectura, configuración y pruebas;
 - CI con los controles locales;
 - marcador `.mlops-profile` con `python-ml`.
+- `configs/base.yaml`, `configs/local.yaml` y un modelo Pydantic estricto.
 
 ### Frontera de ejecución
 
@@ -92,6 +94,7 @@ los artefactos deban quedar trazados o cuando exista una decisión formal de pro
 - registro de parámetros, métricas, identidad del dataset, tags y artefactos útiles;
 - firma del modelo y ejemplo de entrada;
 - separación entre entrenamiento, evaluación y decisión de promoción.
+- `start_experiment_run` como único dueño de `start_run` y `autolog`.
 
 ### Reproducibilidad local
 
@@ -127,7 +130,8 @@ claros entre dev y prod.
 - `databricks.yml` como fuente de verdad de recursos del workspace;
 - targets diferenciados, al menos `dev` y `prod`;
 - wheel del paquete compartido;
-- notebooks finos que delegan lógica al paquete;
+- notebooks bajo `notebooks/databricks/` que delegan lógica a `workflows/`;
+- `notebook_task` como flujo principal del bundle;
 - documentos `databricks.md`, `operations.md`, `release-checklist.md` y `rollback.md`;
 - pruebas externas separadas en `tests/external`;
 - tareas independientes para evaluación, aprobación, despliegue, smoke test y promoción;
@@ -187,4 +191,3 @@ también deben agregarse dependencias, documentos, módulos, pruebas y configura
 - usar siempre la última versión de una dependencia crítica sin restricción;
 - hacer que las pruebas dependan de un tracking store compartido;
 - cambiar de perfil sin actualizar el contrato documental.
-

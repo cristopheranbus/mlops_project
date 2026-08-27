@@ -54,25 +54,27 @@ wheels = [
 name = "create-mlops-project-skill"
 version = "0.1.0"
 source = { editable = "." }
+dependencies = [
+    { name = "pyyaml" },
+]
 
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-cov" },
-    { name = "pyyaml" },
     { name = "ruff" },
     { name = "types-pyyaml" },
 ]
 
 [package.metadata]
+requires-dist = [{ name = "pyyaml", specifier = ">=6.0.2,<7" }]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "mypy", specifier = ">=1.17,<2" },
     { name = "pytest", specifier = ">=8.4,<9" },
     { name = "pytest-cov", specifier = ">=6.2,<7" },
-    { name = "pyyaml", specifier = ">=6.0.2,<7" },
     { name = "ruff", specifier = ">=0.12,<0.13" },
     { name = "types-pyyaml", specifier = ">=6.0.12,<7" },
 ]

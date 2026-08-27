@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from pytest import CaptureFixture
@@ -13,9 +14,11 @@ def _write(path: Path, content: str = "content\n") -> None:
 
 
 def _valid_project(root: Path, profile: str = "python-ml") -> Path:
-    dependencies = '["scikit-learn>=1.5"]'
+    dependencies = '["pydantic>=2.11,<3", "pyyaml>=6.0.2,<7", "scikit-learn>=1.5"]'
     if profile != "python-ml":
-        dependencies = '["mlflow>=3.1,<4", "scikit-learn>=1.5"]'
+        dependencies = (
+            '["mlflow>=3.1,<4", "pydantic>=2.11,<3", "pyyaml>=6.0.2,<7", "scikit-learn>=1.5"]'
+        )
     _write(
         root / "pyproject.toml",
         f"""
@@ -44,18 +47,55 @@ source = ["src"]
         ".gitignore",
         ".github/workflows/ci.yml",
         "src/demo_project/__init__.py",
+        "src/demo_project/config/models.py",
+        "src/demo_project/config/loader.py",
+        "src/demo_project/config/hashing.py",
+        "src/demo_project/workflows/__init__.py",
         "tests/test_demo.py",
         "docs/architecture.md",
         "docs/configuration.md",
         "docs/testing.md",
     ):
         _write(root / relative)
+    _write(root / "configs/base.yaml", "config_version: 1\nproject:\n  name: demo\n")
+    _write(root / "configs/local.yaml", "config_version: 1\nproject:\n  environment: local\n")
     if profile != "python-ml":
         _write(root / "docs/mlflow.md")
         _write(root / "tests/integration/test_mlflow.py")
+        _write(
+            root / "src/demo_project/tracking/mlflow.py",
+            """from contextlib import contextmanager
+
+import mlflow
+
+
+@contextmanager
+def start_experiment_run(config):
+    with mlflow.start_run() as run:
+        mlflow.autolog(log_input_examples=True, log_model_signatures=True, silent=False)
+        mlflow.set_tags({
+            "config.version": "1",
+            "config.environment": "local",
+            "config.hash": "sha256",
+        })
+        mlflow.log_artifact("resolved_config.yaml")
+        yield run
+""",
+        )
+        _write(
+            root / "src/demo_project/workflows/train.py",
+            """from demo_project.tracking.mlflow import start_experiment_run
+
+
+def run_training(config):
+    with start_experiment_run(config, run_name="train"):
+        return None
+""",
+        )
     if profile == "databricks-mlops":
+        _write(root / "configs/dev.yaml", "config_version: 1\nproject:\n  environment: dev\n")
+        _write(root / "configs/prod.yaml", "config_version: 1\nproject:\n  environment: prod\n")
         for relative in (
-            "databricks.yml",
             "docs/databricks.md",
             "docs/operations.md",
             "docs/release-checklist.md",
@@ -63,6 +103,27 @@ source = ["src"]
             "tests/external/test_workspace.py",
         ):
             _write(root / relative)
+        _write(
+            root / "notebooks/databricks/20_train.py",
+            """# Databricks notebook source
+from demo_project.workflows.train import run_training
+
+run_training(None)
+""",
+        )
+        _write(
+            root / "databricks.yml",
+            """bundle:
+  name: demo
+resources:
+  jobs:
+    training:
+      tasks:
+        - task_key: train
+          notebook_task:
+            notebook_path: notebooks/databricks/20_train.py
+""",
+        )
     return root
 
 
@@ -107,6 +168,61 @@ def test_sensitive_file_is_reported(tmp_path: Path) -> None:
     assert "secret-file" in _error_codes(root)
 
 
+def test_missing_config_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    (root / "configs/local.yaml").unlink()
+    assert "config-layout" in _error_codes(root)
+
+
+def test_invalid_config_version_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    _write(root / "configs/base.yaml", "config_version: 2\n")
+    assert "config-format" in _error_codes(root)
+
+
+def test_invalid_config_yaml_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    _write(root / "configs/base.yaml", "project: [broken\n")
+    assert "config-format" in _error_codes(root)
+
+
+def test_non_mapping_config_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    _write(root / "configs/base.yaml", "- item\n")
+    assert "config-format" in _error_codes(root)
+
+
+def test_sensitive_config_key_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    _write(root / "configs/local.yaml", "config_version: 1\nauth_token: unsafe\n")
+    assert "config-secret" in _error_codes(root)
+
+
+def test_config_dependencies_are_required(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace(
+            '["pydantic>=2.11,<3", "pyyaml>=6.0.2,<7", "scikit-learn>=1.5"]',
+            '["scikit-learn>=1.5"]',
+        ),
+    )
+    assert "config-layout" in _error_codes(root)
+
+
+def test_multiple_primary_packages_are_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    _write(root / "src/another_package/__init__.py")
+    assert "package" in _error_codes(root)
+
+
+def test_reusable_definition_outside_src_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    _write(root / "scripts/train.py", "def train():\n    return None\n")
+    assert "python-layout" in _error_codes(root)
+
+
 def test_incomplete_mlflow_profile_is_reported(tmp_path: Path) -> None:
     root = _valid_project(tmp_path, "python-ml")
     assert "mlflow" in _error_codes(root, "mlflow-local")
@@ -123,10 +239,147 @@ def test_complete_mlflow_profile_is_valid(tmp_path: Path) -> None:
     assert issues == []
 
 
+def test_missing_mlflow_adapter_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    (root / "src/demo_project/tracking/mlflow.py").unlink()
+    assert "mlflow-run" in _error_codes(root)
+
+
+def test_autolog_after_yield_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    _write(
+        root / "src/demo_project/tracking/mlflow.py",
+        """from contextlib import contextmanager
+import mlflow
+
+@contextmanager
+def start_experiment_run(config):
+    with mlflow.start_run() as run:
+        yield run
+        mlflow.autolog()
+""",
+    )
+    assert "mlflow-run" in _error_codes(root)
+
+
+def test_direct_start_run_outside_adapter_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    _write(root / "src/demo_project/modeling/train.py", "import mlflow\nmlflow.start_run()\n")
+    assert "mlflow-run" in _error_codes(root)
+
+
+def test_workflow_must_use_managed_run(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    _write(
+        root / "src/demo_project/workflows/train.py", "def run_training(config):\n    return None\n"
+    )
+    assert "mlflow-run" in _error_codes(root)
+
+
 def test_complete_databricks_profile_is_valid(tmp_path: Path) -> None:
     root = _valid_project(tmp_path, "databricks-mlops")
     _, issues = validate_project(root)
     assert issues == []
+
+
+def test_source_notebook_requires_marker(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    _write(
+        root / "notebooks/databricks/20_train.py",
+        "from demo_project.workflows.train import run_training\nrun_training(None)\n",
+    )
+    assert "notebook-format" in _error_codes(root)
+
+
+def test_notebook_definition_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    path = root / "notebooks/databricks/20_train.py"
+    _write(path, path.read_text(encoding="utf-8") + "\ndef helper():\n    return None\n")
+    assert "notebook-layout" in _error_codes(root)
+
+
+def test_notebook_must_import_workflow(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    _write(
+        root / "notebooks/databricks/20_train.py", "# Databricks notebook source\nprint('train')\n"
+    )
+    assert "notebook-layout" in _error_codes(root)
+
+
+def test_valid_ipynb_notebook_is_accepted(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    (root / "notebooks/databricks/20_train.py").unlink()
+    notebook = {
+        "cells": [
+            {
+                "cell_type": "code",
+                "execution_count": None,
+                "metadata": {},
+                "outputs": [],
+                "source": [
+                    "from demo_project.workflows.train import run_training\n",
+                    "run_training(None)\n",
+                ],
+            }
+        ],
+        "metadata": {},
+        "nbformat": 4,
+        "nbformat_minor": 5,
+    }
+    _write(root / "notebooks/databricks/20_train.ipynb", json.dumps(notebook))
+    databricks = (root / "databricks.yml").read_text(encoding="utf-8")
+    _write(root / "databricks.yml", databricks.replace("20_train.py", "20_train.ipynb"))
+    _, issues = validate_project(root)
+    assert issues == []
+
+
+def test_ipynb_outputs_are_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    notebook = {
+        "cells": [
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {},
+                "outputs": [{"output_type": "stream", "name": "stdout", "text": ["x"]}],
+                "source": ["from demo_project.workflows.train import run_training\n"],
+            }
+        ],
+        "metadata": {},
+        "nbformat": 4,
+        "nbformat_minor": 5,
+    }
+    _write(root / "notebooks/databricks/30_evaluate.ipynb", json.dumps(notebook))
+    assert "notebook-format" in _error_codes(root)
+
+
+def test_duplicate_notebook_formats_are_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    notebook = {
+        "cells": [],
+        "metadata": {},
+        "nbformat": 4,
+        "nbformat_minor": 5,
+    }
+    _write(root / "notebooks/databricks/20_train.ipynb", json.dumps(notebook))
+    assert "notebook-format" in _error_codes(root)
+
+
+def test_notebook_task_outside_canonical_directory_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    _write(root / "notebooks/exploration/train.py", "# Databricks notebook source\n")
+    databricks = (root / "databricks.yml").read_text(encoding="utf-8")
+    _write(
+        root / "databricks.yml",
+        databricks.replace("notebooks/databricks/20_train.py", "notebooks/exploration/train.py"),
+    )
+    assert "databricks-task" in _error_codes(root)
+
+
+def test_bundle_requires_notebook_task(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    _write(root / "databricks.yml", "bundle:\n  name: demo\n")
+    assert "databricks-task" in _error_codes(root)
 
 
 def test_invalid_profile_marker_is_reported_and_falls_back(tmp_path: Path) -> None:
