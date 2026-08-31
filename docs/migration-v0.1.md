@@ -13,6 +13,9 @@ la versión actual.
 - MLflow abierto exclusivamente por `tracking/mlflow.py`;
 - notebooks productivos únicamente en `notebooks/databricks/`;
 - Jobs Databricks notebook-first con rutas comprobables.
+- workflows numerados de calidad y seguridad en todos los perfiles;
+- workflows separados de bundle y monitoreo en `databricks-mlops`;
+- 90% de branch coverage, markers estrictos y timeout finito.
 
 ## Orden recomendado
 
@@ -25,7 +28,9 @@ la versión actual.
 7. convierte notebooks en adaptadores finos y limpia outputs;
 8. actualiza `databricks.yml` y la librería wheel;
 9. añade documentación para principiantes;
-10. ejecuta el validador y todos los quality gates.
+10. reemplaza el workflow único por `01` y `02`, y agrega `03`/`04` en Databricks;
+11. migra casos compartidos al inventario de `pytest_generate_tests`;
+12. ejecuta el validador y todos los quality gates.
 
 ## Compatibilidad por perfil
 

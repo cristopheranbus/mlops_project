@@ -1,0 +1,115 @@
+name: 01 - Code quality and package validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "19 7 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.8.15"
+          enable-cache: true
+      - run: uv sync --locked --dev
+      - run: uv lock --check
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run python "${{ github.workspace }}/skills/create-mlops-project/scripts/validate_project.py" --help
+
+  tests:
+    name: tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.8.15"
+          enable-cache: true
+      - run: uv sync --locked --dev
+      - run: >-
+          uv run pytest
+          --junitxml=reports/junit-${{ runner.os }}-${{ matrix.python-version }}.xml
+          --cov-report=xml:reports/coverage-${{ runner.os }}-${{ matrix.python-version }}.xml
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ always() }}
+        with:
+          name: test-reports-${{ runner.os }}-py${{ matrix.python-version }}
+          path: reports/
+          if-no-files-found: error
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.8.15"
+          enable-cache: true
+      - run: uv build
+      - run: uv venv .package-venv
+      - run: uv pip install --python .package-venv/bin/python dist/*.whl
+      - run: .package-venv/bin/python -c "from scripts.validate_project import PROFILES; assert len(PROFILES) == 3"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: python-package
+          path: dist/
+          if-no-files-found: error
+
+  mutation-analysis:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.8.15"
+          enable-cache: true
+      - run: uv sync --locked --dev --group mutation
+      - run: uv run --group mutation mutmut run
+      - if: ${{ always() }}
+        run: uv run --group mutation mutmut results
+
+  quality:
+    if: ${{ always() }}
+    needs: [static-analysis, tests, package]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every quality job
+        env:
+          STATIC_RESULT: ${{ needs.static-analysis.result }}
+          TEST_RESULT: ${{ needs.tests.result }}
+          PACKAGE_RESULT: ${{ needs.package.result }}
+        run: test "$STATIC_RESULT $TEST_RESULT $PACKAGE_RESULT" = "success success success"

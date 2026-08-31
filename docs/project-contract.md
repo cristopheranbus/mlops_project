@@ -51,7 +51,7 @@ Cuando el usuario no indique lo contrario:
 
 - Python 3.12;
 - `uv` para dependencias y ejecución;
-- cobertura mínima de 85%;
+- branch coverage mínima de 90%;
 - perfil más pequeño que satisfaga el requerimiento;
 - configuración neutral al entorno;
 - notebooks opcionales y finos;
@@ -68,7 +68,10 @@ La estructura puede adaptarse al problema, pero debe preservar responsabilidades
 proyecto_ml/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml
+│       ├── 01-code-quality.yml
+│       ├── 02-security.yml
+│       ├── 03-databricks.yml
+│       └── 04-production-monitoring.yml
 ├── .gitignore
 ├── .mlops-profile
 ├── README.md
@@ -111,7 +114,8 @@ proyecto_ml/
 Existe exactamente un paquete principal bajo `src/`. Los submódulos del dominio pueden
 adaptarse, pero `config/` y `workflows/` conservan sus responsabilidades. `dev.yaml`,
 `prod.yaml`, `notebooks/databricks/` y `databricks.yml` son obligatorios para el perfil
-Databricks; `notebooks/exploration/` es opcional y nunca lo ejecutan Jobs.
+Databricks; sus workflows `03` y `04` también son obligatorios. Los perfiles menores sólo
+incluyen `01` y `02`. `notebooks/exploration/` es opcional y nunca lo ejecutan Jobs.
 
 ## Responsabilidades arquitectónicas
 
@@ -219,8 +223,12 @@ uv build
 ```
 
 Ruff cubre estilo, errores comunes, imports y formato; mypy valida con rigor el código
-propio; pytest aplica la cobertura configurada; el build comprueba que el paquete puede
-distribuirse.
+propio; pytest aplica markers estrictos, timeout y al menos 90% de branch coverage; el
+build y el smoke de instalación comprueban que el paquete puede distribuirse.
+
+La matriz de CI cubre Python 3.12 y 3.13 sobre Linux y Windows. Las acciones se fijan a
+commits completos, los permisos parten de `contents: read` y ninguna prueba externa se
+ejecuta implícitamente.
 
 ## Contrato documental
 

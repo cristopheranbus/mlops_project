@@ -21,7 +21,7 @@ metric, acceptance thresholds, Python version, coverage target, and one profile:
   Bundles, Jobs, approval gates, Model Serving, and smoke tests.
 
 Ask only for missing choices that materially change the result. Default to Python 3.12,
-`uv`, 85% coverage, and the smallest profile that satisfies the request.
+`uv`, 90% branch coverage, and the smallest profile that satisfies the request.
 
 ## Create safely
 
@@ -37,6 +37,9 @@ Ask only for missing choices that materially change the result. Default to Pytho
 6. Generate the project from the selected standards and the user's domain contract. Keep
    one primary package under `src`, route reusable code through it, and make notebooks
    thin entry points into package workflows.
+   Generate the numbered quality and security workflows for every profile; add the
+   Databricks validation/deployment and production monitoring workflows for
+   `databricks-mlops`.
 7. Record the chosen profile in `.mlops-profile` so validation is reproducible.
 8. Run `scripts/validate_project.py <destination> --profile <profile>` from this skill.
 9. Run every applicable local quality command, fix failures, and repeat validation.

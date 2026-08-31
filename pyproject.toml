@@ -13,11 +13,17 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "hypothesis>=6.138,<7",
     "mypy>=1.17,<2",
+    "pip-audit>=2.9,<3",
     "pytest>=8.4,<9",
     "pytest-cov>=6.2,<7",
+    "pytest-timeout>=2.4,<3",
     "ruff>=0.12,<0.13",
     "types-pyyaml>=6.0.12,<7",
+]
+mutation = [
+    "mutmut>=3.3,<4",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -41,12 +47,25 @@ strict = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --cov=skills/create-mlops-project/scripts --cov-report=term-missing --cov-fail-under=85"
+addopts = "-ra --strict-markers --timeout=30 --cov=skills/create-mlops-project/scripts --cov-report=term-missing --cov-fail-under=90"
+markers = [
+    "contract: generated-project contract tests without external services",
+    "databricks_contract: offline Databricks structure and bundle contract tests",
+    "external: checks that require explicitly authorized external infrastructure",
+    "integration: local multi-component tests",
+    "monitoring_contract: production monitoring workflow contract tests",
+]
 
 [tool.coverage.run]
 branch = true
 source = ["skills/create-mlops-project/scripts"]
 
 [tool.coverage.report]
+fail_under = 90
 show_missing = true
 skip_covered = true
+
+[tool.mutmut]
+paths_to_mutate = ["skills/create-mlops-project/scripts/validate_project.py"]
+tests_dir = ["tests/"]
+runner = "python -m pytest -q --no-cov"

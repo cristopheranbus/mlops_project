@@ -22,15 +22,32 @@ uv build
 ```
 
 Use Ruff for lint, imports, and formatting; MyPy with strict checking for owned source;
-Pytest with a default coverage floor of 85%; and a package build check. Generated code,
+Pytest with a default branch-coverage floor of 90%; and a package build check. Generated code,
 notebooks, and declarative files need not count toward coverage.
 
 ## CI
 
-Mirror the local gates in GitHub Actions. Use minimum permissions, concurrency controls,
-fixed Python versions, and stable pinned action releases. External deployment is a
-separate job with an explicit environment and credentials. A missing external credential
-must skip or block that job clearly, never turn it into a false success.
+Generate numbered workflows with stable public names:
+
+```text
+01 - Code quality and package validation
+02 - Repository security scanning
+03 - Databricks bundle validation and deployment
+04 - Production model monitoring
+```
+
+All profiles include `01` and `02`. Only `databricks-mlops` includes `03` and `04`.
+Mirror local gates in `01`, including supported Python versions, Linux and Windows,
+branch coverage, build, wheel installation smoke testing, and durable test reports.
+
+Use `02` for CodeQL, dependency review, locked-dependency auditing, and supply-chain
+controls. Default every workflow to `contents: read`, grant extra permissions per job,
+never use `pull_request_target` to execute repository code, and pin every action to a
+full commit SHA with a version comment.
+
+External deployment is a separate job with a protected environment and workload identity.
+A missing external credential must skip or block that job clearly, never turn it into a
+false success. Fork pull requests never receive deployment credentials.
 
 ## Repository hygiene
 

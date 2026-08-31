@@ -90,7 +90,7 @@ uv run pytest --basetemp .pytest-tmp
 `.pytest-tmp/` ya está ignorado por Git. Este cambio afecta la ubicación temporal, no la
 lógica de las pruebas.
 
-## La cobertura queda por debajo de 85%
+## La branch coverage queda por debajo de 90%
 
 Primero revisa el reporte de líneas y branches faltantes. Agrega pruebas sobre
 comportamiento y contratos, especialmente:
@@ -232,6 +232,35 @@ Sólo `<package>/tracking/mlflow.py` puede llamar a `mlflow.start_run`. Implemen
 `start_experiment_run`, activa `mlflow.autolog` dentro del run y antes de `yield`, registra
 la configuración resuelta y úsalo desde cada workflow. Consulta
 [Notebooks y MLflow](notebooks-mlflow.md).
+
+## Error `workflow-contract`
+
+Comprueba primero el filename y el nombre público. Todos los perfiles requieren
+`01-code-quality.yml` y `02-security.yml`; Databricks agrega `03-databricks.yml` y
+`04-production-monitoring.yml`.
+
+Después revisa:
+
+- `permissions.contents: read` en la raíz;
+- ausencia de `pull_request_target`;
+- cada `uses:` fijado a un SHA hexadecimal completo de 40 caracteres;
+- `databricks bundle validate` en el workflow 03;
+- `schedule`, `workflow_dispatch` y un job de monitoreo en el workflow 04.
+
+El comentario `# v4` ayuda a personas, pero no reemplaza el SHA inmutable. Consulta
+[Workflows](ci-workflows.md) para entender triggers, credenciales y required checks.
+
+## Pytest no reconoce un marker
+
+La suite usa `--strict-markers`. Declara el marker en `[tool.pytest.ini_options].markers`,
+explica su frontera en [Estrategia de pruebas](testing-strategy.md) y vuelve a ejecutar
+`uv run pytest --markers`. No corrijas un typo agregando un segundo marker equivalente.
+
+## Una prueba de Hypothesis excede el deadline
+
+Primero determina si hay una regresión de rendimiento. Si la prueba toca filesystem y la
+variación pertenece al sistema operativo, usa un límite explícito o `deadline=None` sólo
+en esa propiedad. El timeout global de pytest debe permanecer activo.
 
 ## Error `mlflow`
 

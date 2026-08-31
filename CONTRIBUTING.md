@@ -155,8 +155,8 @@ uv run pytest --basetemp .pytest-tmp
 uv build
 ```
 
-La cobertura mínima configurada es 85%. El objetivo no es maximizar el porcentaje, sino
-probar decisiones, errores y contratos relevantes.
+La cobertura mínima configurada es 90% de branches. El objetivo no es maximizar el
+porcentaje, sino probar decisiones, errores y contratos relevantes.
 
 ## Cambiar `SKILL.md`
 
@@ -233,7 +233,7 @@ Revisa como mínimo:
 - resolución automática;
 - rutas requeridas;
 - dependencias requeridas;
-- fixture `_valid_project`;
+- factory `build_valid_project`;
 - caso completo válido;
 - caso incompleto;
 - `skills/create-mlops-project/SKILL.md`;
@@ -256,8 +256,14 @@ Las pruebas deben ser:
 - pequeñas y orientadas al comportamiento;
 - legibles como ejemplos del contrato.
 
-Para una regla nueva, usa `_valid_project` como base y modifica solo el elemento que debe
+Para una regla nueva, usa `build_valid_project` como base y modifica sólo el elemento que debe
 provocar el issue. Esto evita que un fallo secundario oculte la intención.
+
+Para contratos compartidos, agrega un `ContractCase` y deja que `pytest_generate_tests`
+lo coleccione con un ID estable. Usa `@pytest.mark.parametrize` para tablas pequeñas y
+locales. Si el espacio de entradas es amplio, considera una propiedad de Hypothesis en
+vez de enumerar ejemplos arbitrarios. La guía completa está en
+[docs/testing-strategy.md](docs/testing-strategy.md).
 
 No uses el filesystem real del desarrollador ni un servicio compartido.
 
@@ -306,6 +312,8 @@ Si detectas una exposición, sigue [SECURITY.md](SECURITY.md).
 - [ ] El formato pasa.
 - [ ] mypy pasa.
 - [ ] pytest pasa con cobertura mínima.
+- [ ] Los tests dinámicos tienen IDs legibles y no crean productos cartesianos accidentales.
+- [ ] Los workflows conservan permisos mínimos y acciones fijadas por SHA.
 - [ ] El paquete se construye.
 - [ ] README y documentación están alineados.
 - [ ] No se incluyeron secretos ni archivos generados.

@@ -29,6 +29,8 @@ ese entorno.
 | Configuración YAML + Pydantic | Sí | Sí | Sí |
 | Ruff, mypy, pytest, cobertura y build | Sí | Sí | Sí |
 | CI localizable en GitHub Actions | Sí | Sí | Sí |
+| Workflows 01 calidad y 02 seguridad | Sí | Sí | Sí |
+| Workflows 03 Databricks y 04 monitoreo | No | No | Sí |
 | Documentación base | Sí | Sí | Sí |
 | Tracking de experimentos | No obligatorio | Sí | Sí |
 | Artefactos y firma del modelo | Según necesidad | Sí | Sí |
@@ -60,6 +62,7 @@ ese entorno.
 - pruebas bajo `tests`;
 - README y documentos de arquitectura, configuración y pruebas;
 - CI con los controles locales;
+- matriz Python 3.12/3.13 sobre Linux y Windows, branch coverage y package smoke;
 - marcador `.mlops-profile` con `python-ml`.
 - `configs/base.yaml`, `configs/local.yaml` y un modelo Pydantic estricto.
 
@@ -136,6 +139,7 @@ claros entre dev y prod.
 - pruebas externas separadas en `tests/external`;
 - tareas independientes para evaluación, aprobación, despliegue, smoke test y promoción;
 - identidad de automatización y permisos mínimos.
+- workflows separados para validación/deploy y monitoreo productivo.
 
 ### Fronteras de validación
 
