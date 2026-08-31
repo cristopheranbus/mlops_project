@@ -16,6 +16,11 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   MLflow run boundaries.
 - Beginner tutorial, configuration guide, notebooks and MLflow guide, and migration guide
   from `v0.1.0`.
+- Dynamic cross-profile testing with `pytest_generate_tests`, typed contract cases,
+  deterministic project factories, property-based testing, strict markers, and timeouts.
+- Numbered workflows for quality, repository security, generated Databricks contracts,
+  and production monitoring contracts.
+- Extensive testing strategy and CI operations guides.
 
 ### Changed
 
@@ -23,6 +28,7 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   logic under `src/<package>/`.
 - Documentation navigation now provides dedicated paths for beginners, ML engineers,
   Databricks users, contributors, and maintainers.
+- The default generated-project quality floor is now 90% branch coverage.
 
 ## [0.1.0] - 2026-08-26
 

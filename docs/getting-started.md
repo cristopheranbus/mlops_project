@@ -128,7 +128,7 @@ La skill puede usar:
 
 - Python 3.12;
 - `uv` como gestor;
-- 85% de cobertura;
+- 90% de branch coverage;
 - el perfil más pequeño que cumpla la solicitud;
 - un nombre de paquete normalizado a partir del nombre del proyecto.
 

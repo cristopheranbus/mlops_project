@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run pytest --basetemp .pytest-tmp
 ```
 
-Resultado esperado: todas las pruebas pasan y la cobertura es al menos 85%. Después pide
+Resultado esperado: todas las pruebas pasan y la branch coverage es al menos 90%. Después pide
 a Codex:
 
 ```text
@@ -46,9 +46,12 @@ repositorio nuevo con:
 - separación entre configuración, acceso a datos, features, entrenamiento, evaluación e
   inferencia;
 - pruebas unitarias, de contrato e integración cuando corresponda;
+- matrices dinámicas con `pytest_generate_tests`, property-based testing, timeouts y
+  90% de branch coverage;
 - Ruff, mypy, pytest, cobertura y build como puertas de calidad;
 - dependencias bloqueadas con `uv`;
 - CI en GitHub Actions;
+- workflows separados para calidad, seguridad, Databricks y monitoreo productivo;
 - documentación técnica y operativa adecuada al perfil;
 - manejo de integraciones externas sin versionar credenciales;
 - un camino local que no depende de servicios productivos.
@@ -62,7 +65,11 @@ La forma exacta depende del problema y del perfil, pero el núcleo esperado es:
 
 ```text
 proyecto_ml/
-├── .github/workflows/ci.yml
+├── .github/workflows/
+│   ├── 01-code-quality.yml
+│   ├── 02-security.yml
+│   ├── 03-databricks.yml
+│   └── 04-production-monitoring.yml
 ├── .gitignore
 ├── .mlops-profile
 ├── README.md
@@ -176,7 +183,7 @@ completa. Siempre que sea posible incluye:
 | Perfil | `python-ml` | Limita infraestructura y documentación |
 | Python y cobertura | Python 3.12; 90% | Ajusta toolchain y quality gates |
 
-Si faltan datos, la skill usa por defecto Python 3.12, `uv`, 85% de cobertura y el perfil
+Si faltan datos, la skill usa por defecto Python 3.12, `uv`, 90% de branch coverage y el perfil
 más pequeño compatible. Debe preguntar cuando una decisión cambia materialmente el
 resultado.
 
@@ -258,6 +265,8 @@ alcance completo y cada código de error están documentados en
 | [Tutorial inicial](docs/beginner-tutorial.md) | Desde instalar herramientas hasta el primer PR | Principiantes |
 | [Configuración](docs/configuration.md) | Perfiles YAML, Pydantic, overrides, secretos y hash | Usuarios y ML engineers |
 | [Notebooks y MLflow](docs/notebooks-mlflow.md) | Notebook-first, workflows, autolog y trazabilidad | ML engineers y Databricks |
+| [Estrategia de pruebas](docs/testing-strategy.md) | Hook dinámico, capas, markers, propiedades y diagnóstico | Contribuidores y mantenedores |
+| [Workflows](docs/ci-workflows.md) | Calidad, seguridad, Databricks y monitoreo | ML engineers y operadores |
 | [Migración v0.1.0](docs/migration-v0.1.md) | Adopción del nuevo contrato | Mantenedores |
 | [Perfiles](docs/profiles.md) | Selección, capacidades, fronteras y evolución | Tech leads y ML engineers |
 | [Contrato del proyecto](docs/project-contract.md) | Entradas, estructura y criterios de completitud | Usuarios y revisores |
@@ -288,9 +297,10 @@ uv run pytest --basetemp .pytest-tmp
 uv build
 ```
 
-La configuración actual exige al menos 85% de cobertura. La suite también comprueba que
+La configuración actual exige al menos 90% de branch coverage. La suite también comprueba que
 los enlaces Markdown locales resuelvan y que el índice enumere todas las guías. GitHub
-Actions repite lint, formato, tipado y pruebas en pull requests y pushes a `main`.
+Actions repite lint, formato, tipado, una matriz Linux/Windows para Python 3.12/3.13,
+package smoke tests y controles de seguridad en pull requests y pushes a `main`.
 
 Antes de cambiar una regla del validador, documenta el contrato esperado, agrega pruebas
 positivas y negativas, y confirma que el script continúa sin modificar el proyecto

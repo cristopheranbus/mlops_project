@@ -6,125 +6,15 @@ from pathlib import Path
 from pytest import CaptureFixture
 
 from scripts.validate_project import main, validate_project
+from tests.project_factory import build_valid_project, write
 
 
 def _write(path: Path, content: str = "content\n") -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+    write(path, content)
 
 
 def _valid_project(root: Path, profile: str = "python-ml") -> Path:
-    dependencies = '["pydantic>=2.11,<3", "pyyaml>=6.0.2,<7", "scikit-learn>=1.5"]'
-    if profile != "python-ml":
-        dependencies = (
-            '["mlflow>=3.1,<4", "pydantic>=2.11,<3", "pyyaml>=6.0.2,<7", "scikit-learn>=1.5"]'
-        )
-    _write(
-        root / "pyproject.toml",
-        f"""
-[project]
-name = "demo-project"
-version = "0.1.0"
-dependencies = {dependencies}
-
-[tool.ruff]
-line-length = 100
-
-[tool.mypy]
-strict = true
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-
-[tool.coverage.run]
-source = ["src"]
-""".strip(),
-    )
-    _write(root / ".mlops-profile", profile)
-    for relative in (
-        "uv.lock",
-        "README.md",
-        ".gitignore",
-        ".github/workflows/ci.yml",
-        "src/demo_project/__init__.py",
-        "src/demo_project/config/models.py",
-        "src/demo_project/config/loader.py",
-        "src/demo_project/config/hashing.py",
-        "src/demo_project/workflows/__init__.py",
-        "tests/test_demo.py",
-        "docs/architecture.md",
-        "docs/configuration.md",
-        "docs/testing.md",
-    ):
-        _write(root / relative)
-    _write(root / "configs/base.yaml", "config_version: 1\nproject:\n  name: demo\n")
-    _write(root / "configs/local.yaml", "config_version: 1\nproject:\n  environment: local\n")
-    if profile != "python-ml":
-        _write(root / "docs/mlflow.md")
-        _write(root / "tests/integration/test_mlflow.py")
-        _write(
-            root / "src/demo_project/tracking/mlflow.py",
-            """from contextlib import contextmanager
-
-import mlflow
-
-
-@contextmanager
-def start_experiment_run(config):
-    with mlflow.start_run() as run:
-        mlflow.autolog(log_input_examples=True, log_model_signatures=True, silent=False)
-        mlflow.set_tags({
-            "config.version": "1",
-            "config.environment": "local",
-            "config.hash": "sha256",
-        })
-        mlflow.log_artifact("resolved_config.yaml")
-        yield run
-""",
-        )
-        _write(
-            root / "src/demo_project/workflows/train.py",
-            """from demo_project.tracking.mlflow import start_experiment_run
-
-
-def run_training(config):
-    with start_experiment_run(config, run_name="train"):
-        return None
-""",
-        )
-    if profile == "databricks-mlops":
-        _write(root / "configs/dev.yaml", "config_version: 1\nproject:\n  environment: dev\n")
-        _write(root / "configs/prod.yaml", "config_version: 1\nproject:\n  environment: prod\n")
-        for relative in (
-            "docs/databricks.md",
-            "docs/operations.md",
-            "docs/release-checklist.md",
-            "docs/rollback.md",
-            "tests/external/test_workspace.py",
-        ):
-            _write(root / relative)
-        _write(
-            root / "notebooks/databricks/20_train.py",
-            """# Databricks notebook source
-from demo_project.workflows.train import run_training
-
-run_training(None)
-""",
-        )
-        _write(
-            root / "databricks.yml",
-            """bundle:
-  name: demo
-resources:
-  jobs:
-    training:
-      tasks:
-        - task_key: train
-          notebook_task:
-            notebook_path: notebooks/databricks/20_train.py
-""",
-        )
-    return root
+    return build_valid_project(root, profile)
 
 
 def _error_codes(root: Path, profile: str = "auto") -> set[str]:
@@ -221,6 +111,40 @@ def test_reusable_definition_outside_src_is_reported(tmp_path: Path) -> None:
     root = _valid_project(tmp_path)
     _write(root / "scripts/train.py", "def train():\n    return None\n")
     assert "python-layout" in _error_codes(root)
+
+
+def test_missing_quality_workflow_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    (root / ".github/workflows/01-code-quality.yml").unlink()
+    assert "workflow-contract" in _error_codes(root)
+
+
+def test_workflow_name_is_part_of_the_public_contract(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    path = root / ".github/workflows/01-code-quality.yml"
+    _write(path, path.read_text(encoding="utf-8").replace("01 - Code quality", "Quality"))
+    assert "workflow-contract" in _error_codes(root)
+
+
+def test_workflows_default_to_read_only_contents(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    path = root / ".github/workflows/02-security.yml"
+    _write(path, path.read_text(encoding="utf-8").replace("contents: read", "contents: write"))
+    assert "workflow-contract" in _error_codes(root)
+
+
+def test_pull_request_target_is_rejected(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    path = root / ".github/workflows/01-code-quality.yml"
+    _write(path, path.read_text(encoding="utf-8").replace("pull_request:", "pull_request_target:"))
+    assert "workflow-contract" in _error_codes(root)
+
+
+def test_actions_must_be_pinned_to_a_commit_sha(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    path = root / ".github/workflows/01-code-quality.yml"
+    _write(path, path.read_text(encoding="utf-8") + "      - uses: actions/checkout@v4\n")
+    assert "workflow-contract" in _error_codes(root)
 
 
 def test_incomplete_mlflow_profile_is_reported(tmp_path: Path) -> None:
@@ -380,6 +304,20 @@ def test_bundle_requires_notebook_task(tmp_path: Path) -> None:
     root = _valid_project(tmp_path, "databricks-mlops")
     _write(root / "databricks.yml", "bundle:\n  name: demo\n")
     assert "databricks-task" in _error_codes(root)
+
+
+def test_databricks_workflow_must_validate_the_bundle(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    path = root / ".github/workflows/03-databricks.yml"
+    _write(path, path.read_text(encoding="utf-8").replace("databricks bundle validate", "echo"))
+    assert "workflow-contract" in _error_codes(root)
+
+
+def test_monitoring_workflow_requires_schedule_and_manual_trigger(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    path = root / ".github/workflows/04-production-monitoring.yml"
+    _write(path, path.read_text(encoding="utf-8").replace("  schedule:\n", ""))
+    assert "workflow-contract" in _error_codes(root)
 
 
 def test_invalid_profile_marker_is_reported_and_falls_back(tmp_path: Path) -> None:

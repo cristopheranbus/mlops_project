@@ -56,7 +56,7 @@ uv sync --locked --dev
 uv run pytest --basetemp .pytest-tmp
 ```
 
-**Salida esperada:** todos los tests pasan y la cobertura total es al menos 85%.
+**Salida esperada:** todos los tests pasan y la branch coverage total es al menos 90%.
 
 **Error habitual en Windows:** permiso denegado en la carpeta temporal. Conserva
 `--basetemp .pytest-tmp`; esa ruta está ignorada por Git.

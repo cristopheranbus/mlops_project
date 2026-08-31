@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_MANIFEST = ROOT / ".codex-plugin" / "plugin.json"
 SKILL_ROOT = ROOT / "skills" / "create-mlops-project"
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+ACTION_REF = re.compile(r"uses:\s*[^@\s]+@([^\s#]+)")
+FULL_SHA = re.compile(r"^[0-9a-f]{40}$", re.IGNORECASE)
 
 
 def _plugin_manifest() -> dict[str, Any]:
@@ -50,9 +52,33 @@ def test_skill_frontmatter_and_ui_metadata_are_aligned() -> None:
 
 def test_github_yaml_files_parse() -> None:
     yaml_files = [
-        ROOT / ".github" / "workflows" / "ci.yml",
+        ROOT / ".github" / "dependabot.yml",
+        *sorted((ROOT / ".github" / "workflows").glob("*.yml")),
         *sorted((ROOT / ".github" / "ISSUE_TEMPLATE").glob("*.yml")),
     ]
 
     for path in yaml_files:
         assert yaml.safe_load(path.read_text(encoding="utf-8")) is not None, path
+
+
+def test_repository_workflows_have_numbered_public_names() -> None:
+    expected_names = {
+        "01-code-quality.yml": "01 - Code quality and package validation",
+        "02-security.yml": "02 - Repository security scanning",
+        "03-databricks-contract.yml": "03 - Databricks bundle validation and deployment contract",
+        "04-monitoring-contract.yml": "04 - Production model monitoring contract",
+    }
+
+    for filename, expected_name in expected_names.items():
+        workflow = yaml.safe_load(
+            (ROOT / ".github" / "workflows" / filename).read_text(encoding="utf-8")
+        )
+        assert workflow["name"] == expected_name
+        assert workflow["permissions"]["contents"] == "read"
+
+
+def test_repository_workflows_use_immutable_actions_and_safe_triggers() -> None:
+    for path in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+        source = path.read_text(encoding="utf-8")
+        assert "pull_request_target" not in source, path
+        assert all(FULL_SHA.fullmatch(ref) for ref in ACTION_REF.findall(source)), path

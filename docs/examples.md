@@ -65,7 +65,7 @@ mejorar el MAE del baseline al menos 8% y no superar un error absoluto mediano d
 ningún rango con suficiente muestra.
 
 Operación: ejecución local y predicción batch. Perfil python-ml, Python 3.12, cobertura
-85%. Documenta claramente unidades monetarias y tratamiento de outliers.
+90%. Documenta claramente unidades monetarias y tratamiento de outliers.
 ```
 
 ## Forecasting con backtesting
@@ -239,4 +239,3 @@ Genera el bundle y confirma que producción funciona sin conectarte al workspace
 
 Se puede generar y validar localmente la estructura, pero no confirmar recursos, permisos
 ni endpoints sin una ejecución autorizada.
-

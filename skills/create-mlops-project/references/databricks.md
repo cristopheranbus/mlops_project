@@ -22,3 +22,12 @@
   test. Preserve the previous Champion and document rollback.
 - Include operational, release, and rollback instructions and identify which checks need
   a live workspace.
+- Generate `.github/workflows/03-databricks.yml` with the public name
+  `03 - Databricks bundle validation and deployment`. Pull requests run offline contract
+  tests and `databricks bundle validate`; deployment uses workload identity, a protected
+  environment, explicit targets, and never runs with production credentials on fork PRs.
+- Generate `.github/workflows/04-production-monitoring.yml` with the public name
+  `04 - Production model monitoring`. It is scheduled and manually runnable, reads the
+  exact model version and configuration hash, checks freshness, schema, drift,
+  performance and serving health, and emits auditable evidence. Monitoring must not
+  retrain, approve, or promote a model as an implicit side effect.

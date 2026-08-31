@@ -18,6 +18,7 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 2. [Configuración tipada](configuration.md)
 3. [Notebooks y MLflow](notebooks-mlflow.md)
 4. [Perfiles](profiles.md)
+5. [Estrategia de pruebas](testing-strategy.md)
 
 ### Trabajo con Databricks
 
@@ -25,12 +26,15 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 2. [Configuración tipada](configuration.md)
 3. [Perfil Databricks](profiles.md#perfil-databricks-mlops)
 4. [Contrato del proyecto](project-contract.md)
+5. [Workflows de CI y monitoreo](ci-workflows.md)
 
 ### Quiero hacer mi primera contribución
 
 1. [Tutorial inicial](beginner-tutorial.md)
 2. [Mi primera contribución](../CONTRIBUTING.md#mi-primera-contribución)
 3. [Validación](validation.md)
+4. [Estrategia de pruebas](testing-strategy.md)
+5. [Workflows](ci-workflows.md)
 
 ### Quiero definir un proyecto correctamente
 
@@ -47,6 +51,8 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 5. [Guía de contribución](../CONTRIBUTING.md)
 6. [Política de seguridad](../SECURITY.md)
 7. [Migración desde v0.1.0](migration-v0.1.md)
+8. [Estrategia de pruebas](testing-strategy.md)
+9. [Workflows y operación](ci-workflows.md)
 
 ### Tengo un fallo
 

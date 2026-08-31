@@ -30,6 +30,15 @@ SECRET_NAME_PATTERNS = (
 )
 SENSITIVE_CONFIG_KEY = re.compile(r"(?:password|private[_-]?key|secret|token)", re.IGNORECASE)
 PYTHON_DEFINITION = re.compile(r"^\s*(?:async\s+def|def|class)\s+", re.MULTILINE)
+FULL_COMMIT_SHA = re.compile(r"^[0-9a-f]{40}$", re.IGNORECASE)
+WORKFLOW_CONTRACT = {
+    "01-code-quality.yml": "01 - Code quality and package validation",
+    "02-security.yml": "02 - Repository security scanning",
+}
+DATABRICKS_WORKFLOW_CONTRACT = {
+    "03-databricks.yml": "03 - Databricks bundle validation and deployment",
+    "04-production-monitoring.yml": "04 - Production model monitoring",
+}
 
 
 @dataclass(frozen=True)
@@ -211,6 +220,82 @@ def _validate_python_layout(root: Path, issues: list[Issue]) -> None:
                     "error",
                     "python-layout",
                     f"Reusable Python definitions must live under src: {relative}",
+                )
+            )
+
+
+def _validate_workflows(root: Path, profile: Profile, issues: list[Issue]) -> None:
+    expected = dict(WORKFLOW_CONTRACT)
+    if profile == "databricks-mlops":
+        expected.update(DATABRICKS_WORKFLOW_CONTRACT)
+    workflow_root = root / ".github" / "workflows"
+    for filename, expected_name in expected.items():
+        path = workflow_root / filename
+        if not path.is_file():
+            issues.append(
+                Issue(
+                    "error",
+                    "workflow-contract",
+                    f"Required workflow is missing: .github/workflows/{filename}",
+                )
+            )
+            continue
+        data = _load_yaml(path, issues, "workflow-contract")
+        if data is None:
+            continue
+        if data.get("name") != expected_name:
+            issues.append(
+                Issue(
+                    "error",
+                    "workflow-contract",
+                    f"Workflow {filename} must be named '{expected_name}'",
+                )
+            )
+        permissions = data.get("permissions")
+        if not isinstance(permissions, dict) or permissions.get("contents") != "read":
+            issues.append(
+                Issue(
+                    "error",
+                    "workflow-contract",
+                    f"Workflow {filename} must default to contents: read permissions",
+                )
+            )
+        source = path.read_text(encoding="utf-8")
+        if "pull_request_target" in source:
+            issues.append(
+                Issue(
+                    "error",
+                    "workflow-contract",
+                    f"Workflow {filename} must not execute untrusted code with pull_request_target",
+                )
+            )
+        for action_ref in re.findall(r"uses:\s*[^@\s]+@([^\s#]+)", source):
+            if not FULL_COMMIT_SHA.fullmatch(action_ref):
+                issues.append(
+                    Issue(
+                        "error",
+                        "workflow-contract",
+                        f"Workflow {filename} must pin actions to a full commit SHA",
+                    )
+                )
+                break
+        if filename == "03-databricks.yml" and "databricks bundle validate" not in source:
+            issues.append(
+                Issue(
+                    "error",
+                    "workflow-contract",
+                    "Databricks workflow must run databricks bundle validate",
+                )
+            )
+        if filename == "04-production-monitoring.yml" and not all(
+            token in source for token in ("schedule:", "workflow_dispatch:", "monitor")
+        ):
+            issues.append(
+                Issue(
+                    "error",
+                    "workflow-contract",
+                    "Production monitoring must be scheduled, manually runnable, "
+                    "and execute monitoring",
                 )
             )
 
@@ -493,7 +578,6 @@ def validate_project(root: Path, requested_profile: str = "auto") -> tuple[Profi
         "tests",
         "README.md",
         ".gitignore",
-        ".github/workflows/ci.yml",
         "docs/architecture.md",
         "docs/configuration.md",
         "docs/testing.md",
@@ -516,6 +600,7 @@ def validate_project(root: Path, requested_profile: str = "auto") -> tuple[Profi
         issues.append(Issue("error", "tests", "No test_*.py files found"))
 
     dependencies = _dependency_strings(data)
+    _validate_workflows(root, profile, issues)
     _validate_configuration(root, package, profile, dependencies, issues)
     _validate_python_layout(root, issues)
     if profile in {"mlflow-local", "databricks-mlops"}:

@@ -65,3 +65,23 @@ def test_runtime_contract_guides_cover_public_interfaces() -> None:
     assert all(
         term in tracking for term in ("start_experiment_run", "mlflow.autolog", "notebook_task")
     )
+
+
+def test_testing_and_ci_guides_cover_operational_interfaces() -> None:
+    testing = (DOCS / "testing-strategy.md").read_text(encoding="utf-8")
+    workflows = (DOCS / "ci-workflows.md").read_text(encoding="utf-8")
+
+    assert all(
+        term in testing
+        for term in ("pytest_generate_tests", "--run-external", "Hypothesis", "branch coverage")
+    )
+    assert all(
+        term in workflows
+        for term in (
+            "01 - Code quality",
+            "02 - Repository security",
+            "03 - Databricks",
+            "04 - Production model monitoring",
+            "contents: read",
+        )
+    )

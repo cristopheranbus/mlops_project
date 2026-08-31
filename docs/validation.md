@@ -74,7 +74,8 @@ src/
 tests/
 README.md
 .gitignore
-.github/workflows/ci.yml
+.github/workflows/01-code-quality.yml
+.github/workflows/02-security.yml
 docs/architecture.md
 docs/configuration.md
 docs/testing.md
@@ -89,6 +90,7 @@ Además:
 - deben existir `configs/base.yaml`, `configs/local.yaml` y los módulos tipados de config;
 - Pydantic y PyYAML deben ser dependencias de runtime;
 - no puede haber lógica Python productiva fuera del paquete principal.
+- deben existir workflows numerados de calidad y seguridad con permisos mínimos.
 
 ## Reglas de `mlflow-local`
 
@@ -118,8 +120,8 @@ tests/external
 ```
 
 El script comprueba además perfiles `dev` y `prod`, formatos de notebooks, imports de
-workflows y rutas `notebook_task` del bundle. No llama al workspace ni demuestra que el
-Job pueda ejecutarse.
+workflows, rutas `notebook_task` del bundle, workflow de validación/deploy y monitoreo
+productivo. No llama al workspace ni demuestra que el Job pueda ejecutarse.
 
 ## Escaneo textual
 
@@ -164,6 +166,7 @@ escáner de secretos apropiado para tu organización.
 | `notebook-format` | Source marker, nbformat, outputs o imports inválidos | Limpiar el notebook y delegar al workflow |
 | `databricks-task` | El bundle no usa un notebook productivo existente | Corregir `notebook_task.notebook_path` |
 | `mlflow-run` | Wrapper incompleto o llamada directa a `start_run` | Centralizar el run y ordenar autolog/configuración |
+| `workflow-contract` | Falta un workflow, tiene nombre/permisos inseguros, acciones flotantes o carece de la etapa esperada | Restaurar el workflow numerado y sus límites operativos |
 | `tests` | No existe ningún `test_*.py` | Agregar pruebas que validen comportamiento |
 | `mlflow` | El perfil necesita MLflow pero no está declarado | Agregar dependencia restringida y actualizar lock |
 | `placeholder` | Quedó contenido sin adaptar | Sustituirlo por valores del dominio |

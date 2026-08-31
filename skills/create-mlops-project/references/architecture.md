@@ -33,6 +33,11 @@ resolved configuration that produced it. Add
 `docs/rollback.md` for production deployment, including how to invoke a production
 notebook and which steps require a live workspace.
 
+Generated documentation also explains the test pyramid, `pytest_generate_tests`, markers,
+coverage, property-based tests, each numbered workflow, required GitHub checks, security
+permissions, Databricks credential boundaries, monitoring thresholds, alert ownership,
+and how to diagnose a failed job from its first actionable error.
+
 Document where each component executes, which system is authoritative, what can run
 locally, and which validations require credentials. Do not generate Databricks resources
 for projects that selected a smaller profile.
