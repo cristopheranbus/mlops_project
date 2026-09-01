@@ -233,6 +233,19 @@ Sólo `<package>/tracking/mlflow.py` puede llamar a `mlflow.start_run`. Implemen
 la configuración resuelta y úsalo desde cada workflow. Consulta
 [Notebooks y MLflow](notebooks-mlflow.md).
 
+## Error `mlflow-security`
+
+El proyecto contiene una señal productiva de MLflow AI Gateway: por ejemplo
+`auth_config.api_base`, `CreateGatewaySecret`, una ruta `/api/2.0/mlflow/gateway` o
+`/gateway/proxy`. Los perfiles generados admiten MLflow Tracking, pero mantienen AI
+Gateway deshabilitado para evitar una ruta SSRF no demostrada como segura.
+
+Retira la configuración o el código. No resuelvas el error cambiando el nombre de la
+clave, concatenando la ruta u omitiendo el validador. Si AI Gateway es un requisito real,
+abre un cambio de contrato con revisión de seguridad, versión upstream verificada,
+autorización administrativa, allowlist, egress y pruebas de bypass. Sigue
+[Seguridad de MLflow](mlflow-security.md).
+
 ## Error `workflow-contract`
 
 Comprueba primero el filename y el nombre público. Todos los perfiles requieren

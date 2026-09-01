@@ -242,6 +242,9 @@ Todos los perfiles incluyen:
   frecuentes y pruebas previas a un PR.
 
 `mlflow-local` y `databricks-mlops` agregan `docs/mlflow.md`.
+También agregan `docs/mlflow-security.md`: el proyecto usa Tracking, mantiene AI Gateway
+deshabilitado y explica actualización de dependencias, despliegue seguro y respuesta ante
+una exposición. El validador aplica este límite como error inmediato.
 
 `databricks-mlops` agrega:
 

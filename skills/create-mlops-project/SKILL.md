@@ -31,8 +31,10 @@ Ask only for missing choices that materially change the result. Default to Pytho
 3. Read [architecture](references/architecture.md),
    [configuration](references/configuration.md), [quality](references/quality.md), and
    [testing](references/testing.md).
-4. For `mlflow-local`, also read [MLflow](references/mlflow.md).
-5. For `databricks-mlops`, read both [MLflow](references/mlflow.md) and
+4. For `mlflow-local`, also read [MLflow](references/mlflow.md) and
+   [MLflow security](references/mlflow-security.md).
+5. For `databricks-mlops`, read [MLflow](references/mlflow.md),
+   [MLflow security](references/mlflow-security.md), and
    [Databricks](references/databricks.md).
 6. Generate the project from the selected standards and the user's domain contract. Keep
    one primary package under `src`, route reusable code through it, and make notebooks

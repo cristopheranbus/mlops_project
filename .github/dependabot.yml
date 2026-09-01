@@ -3,19 +3,45 @@ updates:
   - package-ecosystem: uv
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "08:15"
       timezone: America/Santiago
-    open-pull-requests-limit: 5
-    labels: [dependencies, python]
+    open-pull-requests-limit: 1
+    assignees:
+      - cristopheranbus
+    groups:
+      python-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      python-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - major
+          - minor
+          - patch
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "08:30"
       timezone: America/Santiago
-    open-pull-requests-limit: 5
-    labels: [dependencies, github-actions]
+    open-pull-requests-limit: 1
+    assignees:
+      - cristopheranbus
+    groups:
+      actions-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      actions-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - major
+          - minor
+          - patch
 

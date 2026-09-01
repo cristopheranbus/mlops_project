@@ -92,6 +92,7 @@ los artefactos deban quedar trazados o cuando exista una decisión formal de pro
 
 - dependencia de MLflow declarada;
 - `docs/mlflow.md`;
+- `docs/mlflow-security.md`;
 - pruebas en `tests/integration`;
 - URI de tracking y nombre de experimento configurables por entorno;
 - registro de parámetros, métricas, identidad del dataset, tags y artefactos útiles;
