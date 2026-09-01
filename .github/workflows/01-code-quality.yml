@@ -29,7 +29,7 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --dev
       - run: uv lock --check
-      - run: uv run ruff check .
+      - run: uv run ruff check . --output-format=github
       - run: uv run ruff format --check .
       - run: uv run mypy
       - run: uv run python "${{ github.workspace }}/skills/create-mlops-project/scripts/validate_project.py" --help

@@ -268,6 +268,7 @@ alcance completo y cada código de error están documentados en
 | [Configuración](docs/configuration.md) | Perfiles YAML, Pydantic, overrides, secretos y hash | Usuarios y ML engineers |
 | [Notebooks y MLflow](docs/notebooks-mlflow.md) | Notebook-first, workflows, autolog y trazabilidad | ML engineers y Databricks |
 | [Seguridad de MLflow](docs/mlflow-security.md) | Límite de AI Gateway, SSRF, despliegue y respuesta | Usuarios, seguridad y operadores |
+| [Ruff estricto](docs/ruff.md) | Reglas curadas, excepciones, diagnóstico y migración | Principiantes y contribuidores |
 | [Estrategia de pruebas](docs/testing-strategy.md) | Hook dinámico, capas, markers, propiedades y diagnóstico | Contribuidores y mantenedores |
 | [Workflows](docs/ci-workflows.md) | Calidad, seguridad, Databricks y monitoreo | ML engineers y operadores |
 | [Migración v0.1.0](docs/migration-v0.1.md) | Adopción del nuevo contrato | Mantenedores |

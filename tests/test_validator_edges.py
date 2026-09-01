@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from scripts.validate_project import validate_project
 from tests.project_factory import build_valid_project, write
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _codes(root: Path, profile: str = "auto") -> set[str]:

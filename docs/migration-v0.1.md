@@ -16,6 +16,7 @@ la versión actual.
 - workflows numerados de calidad y seguridad en todos los perfiles;
 - workflows separados de bundle y monitoreo en `databricks-mlops`;
 - 90% de branch coverage, markers estrictos y timeout finito.
+- Ruff 0.16.5 con reglas curadas, preview desactivado y excepciones acotadas.
 
 ## Orden recomendado
 
@@ -30,7 +31,8 @@ la versión actual.
 9. añade documentación para principiantes;
 10. reemplaza el workflow único por `01` y `02`, y agrega `03`/`04` en Databricks;
 11. migra casos compartidos al inventario de `pytest_generate_tests`;
-12. ejecuta el validador y todos los quality gates.
+12. migra Ruff siguiendo [la guía estricta](ruff.md), sin ignores globales;
+13. ejecuta el validador y todos los quality gates.
 
 ## Compatibilidad por perfil
 

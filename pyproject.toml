@@ -19,7 +19,7 @@ dev = [
     "pytest>=9.0.3,<10",
     "pytest-cov>=6.2,<8",
     "pytest-timeout>=2.4,<3",
-    "ruff>=0.12,<0.17",
+    "ruff>=0.16.5,<0.17",
     "types-pyyaml>=6.0.12,<7",
 ]
 mutation = [
@@ -32,10 +32,20 @@ packages = ["skills/create-mlops-project/scripts"]
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+preview = false
 extend-exclude = [".pytest-tmp"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "SIM"]
+select = [
+    "E", "F", "W", "I", "N", "UP", "B", "A", "ANN", "ASYNC", "BLE", "C4",
+    "DTZ", "EM", "ERA", "EXE", "FA", "FLY", "FURB", "G", "ICN", "INP", "INT",
+    "LOG", "PIE", "PT", "PTH", "Q", "RET", "RSE", "S", "SIM", "SLOT", "T10",
+    "T20", "TC", "ARG", "PERF", "PGH", "PLC", "PLE", "PLW", "RUF",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+"skills/create-mlops-project/scripts/validate_project.py" = ["T201"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["scripts"]

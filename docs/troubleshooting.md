@@ -122,6 +122,18 @@ git diff
 
 No aceptes una corrección automática sin revisar cambios semánticos o archivos ajenos.
 
+Si el validador reporta `ruff-config`, revisa antes de ejecutar Ruff:
+
+- versión `ruff>=0.16.5,<0.17`;
+- `target-version = "py312"`, línea 100 y `preview = false`;
+- conjunto curado completo;
+- ausencia de `ALL`, ignores globales y exclusiones de carpetas productivas;
+- `S101`, `T201` y `N999` limitados a sus rutas autorizadas;
+- builtins y namespace packages Databricks sólo en ese perfil.
+
+Consulta [Ruff estricto](ruff.md) para la configuración completa, explicación de códigos,
+política de `noqa` y migración paso a paso.
+
 ## mypy falla
 
 La configuración es estricta. Corrige la causa en vez de propagar `Any` o ignorar el
