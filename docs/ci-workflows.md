@@ -33,9 +33,16 @@ Impedir que un PR rompa estilo, tipos, comportamiento, compatibilidad o packagin
 
 ### Jobs
 
-`static-analysis` ejecuta lock check, Ruff, formato, mypy y smoke del CLI. Ruff se ejecuta
+`branch-policy` verifica que una feature apunte a `dev`, que sólo `dev` pueda promoverse a
+`main` y que Dependabot nunca abra cambios contra `main`. `static-analysis` ejecuta lock
+check, Ruff, formato y smoke del CLI. Ruff se ejecuta
 con `ruff check . --output-format=github` y `ruff format --check .`: CI informa hallazgos,
-pero nunca aplica `--fix` ni reescribe el código. `tests` usa una
+pero nunca aplica `--fix` ni reescribe el código.
+
+`type-check` ejecuta mypy sin caché en una matriz Ubuntu con Python 3.12 y 3.13. Publica un
+JUnit por versión incluso al fallar, y aplica el contrato explicado en [mypy estricto](mypy.md).
+La ejecución se separa de `static-analysis` para que GitHub identifique claramente qué versión
+falló y para no duplicar trabajo. `tests` usa una
 matriz de Python 3.12/3.13 sobre Ubuntu y Windows. `package` construye el wheel, lo instala
 en un entorno separado y comprueba imports. `quality` es el agregador estable que puede
 configurarse como required check.
@@ -127,7 +134,8 @@ corta duración. Un PR de un fork nunca recibe credenciales.
 
 ### Merge a main
 
-El deploy de desarrollo usa:
+Los pushes a `dev` pueden desplegar desarrollo. `main` queda reservado para publicación o
+acciones productivas después de una promoción `dev → main`. El deploy de desarrollo usa:
 
 - GitHub Environment `databricks-dev`;
 - workload identity u OIDC;
@@ -190,8 +198,9 @@ alerta definida por política. No se oculta un incidente reintentando hasta obte
 
 ## Configuración de branch protection
 
-Mantén nombres de jobs agregadores estables. Para este repositorio, `quality` es el check
-principal. Agrega los checks de seguridad cuando la funcionalidad esté habilitada en el
+Mantén nombres de jobs agregadores estables. Para este repositorio, `quality` reúne
+`branch-policy`, `static-analysis`, `type-check`, `tests` y `package`, y es el check
+principal en `dev` y `main`. Agrega los checks de seguridad cuando la funcionalidad esté habilitada en el
 repositorio. No marques como requerido un job que se omite legítimamente en la mayoría de
 los PR; usa un agregador que interprete correctamente esos estados.
 

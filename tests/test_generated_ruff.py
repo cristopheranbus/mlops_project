@@ -4,18 +4,18 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from typing import TYPE_CHECKING
+import sys
+from pathlib import Path
 
 import pytest
 
 from tests.project_factory import build_valid_project, write
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
 
 def _run_ruff(root: Path) -> subprocess.CompletedProcess[str]:
-    executable = shutil.which("ruff")
+    scripts_dir = Path(sys.executable).parent
+    candidate = scripts_dir / ("ruff.exe" if sys.platform == "win32" else "ruff")
+    executable = str(candidate) if candidate.is_file() else shutil.which("ruff")
     assert executable is not None
     command = [
         executable,

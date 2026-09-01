@@ -27,6 +27,7 @@ tests/
 ├── test_contract_matrix.py   perfiles y mutaciones generadas
 ├── test_documentation.py     enlaces, índice y contratos públicos
 ├── test_generated_ruff.py    Ruff real sobre proyectos sintéticos
+├── test_generated_mypy.py    mypy real en Python 3.12/3.13 y casos negativos
 ├── test_plugin_contract.py   manifiesto, metadata y workflows
 ├── test_properties.py        propiedades sobre entradas amplias
 ├── test_validate_project.py  comportamiento detallado del validador
@@ -43,6 +44,12 @@ demuestra los límites importantes: `assert` funciona en tests, `print` falla en
 productiva y sólo se admite en el CLI, los builtins de Databricks funcionan en notebooks y
 `RUF100` rechaza un `noqa` innecesario. Esto evita que el validador y Ruff discrepen sobre
 una configuración aparentemente válida.
+
+`test_generated_mypy.py` ejecuta el binario fijado por el lock contra los tres perfiles para
+Python 3.12 y 3.13. También demuestra que el contrato rechaza funciones sin anotaciones,
+`Any` explícito, ignores sin código, variables posiblemente indefinidas, awaitables olvidados,
+matches incompletos y overrides sin `@override`. Así se prueba tanto la configuración como el
+comportamiento real del analizador.
 
 ## Cómo usa `pytest_generate_tests`
 
