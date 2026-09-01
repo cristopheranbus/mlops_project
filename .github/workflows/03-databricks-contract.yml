@@ -7,7 +7,7 @@ on:
       - "tests/**"
       - ".github/workflows/03-databricks-contract.yml"
   push:
-    branches: [main]
+    branches: [dev, main]
     paths:
       - "skills/create-mlops-project/**"
       - "tests/**"

@@ -3,7 +3,7 @@ name: 01 - Code quality and package validation
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [dev, main]
   schedule:
     - cron: "19 7 * * 3"
   workflow_dispatch:
@@ -16,6 +16,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  branch-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce dev-first pull requests
+        env:
+          ACTOR: ${{ github.actor }}
+          BASE_REF: ${{ github.base_ref }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [[ "$EVENT_NAME" != "pull_request" ]]; then
+            exit 0
+          fi
+          if [[ "$BASE_REF" == "main" && "$HEAD_REF" != "dev" ]]; then
+            echo "Pull requests into main must come from dev."
+            exit 1
+          fi
+          if [[ "$BASE_REF" != "dev" && "$BASE_REF" != "main" ]]; then
+            echo "Pull requests must target dev or a controlled dev-to-main promotion."
+            exit 1
+          fi
+          if [[ "$ACTOR" == "dependabot[bot]" && "$BASE_REF" != "dev" ]]; then
+            echo "Dependabot pull requests must target dev."
+            exit 1
+          fi
+
   static-analysis:
     runs-on: ubuntu-latest
     steps:
@@ -31,8 +57,38 @@ jobs:
       - run: uv lock --check
       - run: uv run ruff check . --output-format=github
       - run: uv run ruff format --check .
-      - run: uv run mypy
       - run: uv run python "${{ github.workspace }}/skills/create-mlops-project/scripts/validate_project.py" --help
+
+  type-check:
+    name: type-check (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.8.15"
+          enable-cache: true
+      - run: uv sync --locked --dev
+      - run: mkdir -p reports
+      - run: >-
+          uv run mypy
+          --no-incremental
+          --python-version ${{ matrix.python-version }}
+          --junit-xml reports/mypy-${{ matrix.python-version }}.xml
+          --junit-format per_file
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: mypy-report-py${{ matrix.python-version }}
+          path: reports/
+          if-no-files-found: error
 
   tests:
     name: tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
@@ -104,12 +160,16 @@ jobs:
 
   quality:
     if: ${{ always() }}
-    needs: [static-analysis, tests, package]
+    needs: [branch-policy, static-analysis, type-check, tests, package]
     runs-on: ubuntu-latest
     steps:
       - name: Require every quality job
         env:
+          BRANCH_RESULT: ${{ needs.branch-policy.result }}
           STATIC_RESULT: ${{ needs.static-analysis.result }}
+          TYPE_RESULT: ${{ needs.type-check.result }}
           TEST_RESULT: ${{ needs.tests.result }}
           PACKAGE_RESULT: ${{ needs.package.result }}
-        run: test "$STATIC_RESULT $TEST_RESULT $PACKAGE_RESULT" = "success success success"
+        run: >-
+          test "$BRANCH_RESULT $STATIC_RESULT $TYPE_RESULT $TEST_RESULT $PACKAGE_RESULT"
+          = "success success success success success"

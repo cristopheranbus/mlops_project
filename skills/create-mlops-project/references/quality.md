@@ -54,6 +54,31 @@ safe fixes locally, inspect the diff, then format. CI only checks and never rewr
 Generated `docs/testing.md` must explain the selected baseline, the three scoped
 exceptions, how to read a rule code, and why blanket `noqa` comments are prohibited.
 
+## Mypy contract
+
+Declare `mypy>=2.3.1,<2.4` and `types-pyyaml>=6.0.12,<7`. Check owned `src` and `tests`
+with Python 3.12, `strict = true`, `warn_unused_configs`, `disallow_any_explicit`,
+`disallow_any_unimported`, `strict_bytes`, `strict_equality_for_none`, error-code display,
+and these opt-in codes:
+
+```text
+deprecated, explicit-override, exhaustive-match, ignore-without-code,
+mutable-override, possibly-undefined, redundant-expr, redundant-self,
+truthy-bool, truthy-iterable, unused-awaitable
+```
+
+Do not set global `ignore_missing_imports`, `ignore_errors`, `follow_imports = "skip"`,
+`disable_error_code`, or exclusions that hide owned code. An override may only target a
+specific external namespace and must not weaken the primary package or tests. Prefer a
+typed release, a `types-*` package, a local `.pyi` stub, or a typed adapter before such an
+override. If `mypy_path` declares `typings`, version that directory.
+
+Keep Databricks notebooks out of mypy's direct scope. Their production logic belongs in
+typed workflows under `src/<package>/`; notebook runtime globals stay at the thin boundary.
+Generate `docs/mypy.md` with beginner instructions, configuration, every opt-in code,
+narrowing, stubs, external adapters, ignores, casts, troubleshooting, migration, CI commands,
+and official links.
+
 ## CI
 
 Generate numbered workflows with stable public names:
@@ -68,6 +93,11 @@ Generate numbered workflows with stable public names:
 All profiles include `01` and `02`. Only `databricks-mlops` includes `03` and `04`.
 Mirror local gates in `01`, including supported Python versions, Linux and Windows,
 branch coverage, build, wheel installation smoke testing, and durable test reports.
+Run mypy in a dedicated Ubuntu matrix for Python 3.12 and 3.13 with `--no-incremental` and
+publish JUnit even when it fails. Include a branch-policy job in the `quality` aggregator:
+features and Dependabot target `dev`, only `dev` promotes to `main`, and `main → dev` is
+reserved for merge-commit synchronization. Features use squash into `dev`; promotions and
+cross-branch synchronizations use merge commits.
 
 Use `02` for CodeQL, dependency review, locked-dependency auditing, and supply-chain
 controls. Default every workflow to `contents: read`, grant extra permissions per job,

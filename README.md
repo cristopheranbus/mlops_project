@@ -270,6 +270,7 @@ alcance completo y cada código de error están documentados en
 | [Seguridad de MLflow](docs/mlflow-security.md) | Límite de AI Gateway, SSRF, despliegue y respuesta | Usuarios, seguridad y operadores |
 | [Ruff estricto](docs/ruff.md) | Reglas curadas, excepciones, diagnóstico y migración | Principiantes y contribuidores |
 | [Estrategia de pruebas](docs/testing-strategy.md) | Hook dinámico, capas, markers, propiedades y diagnóstico | Contribuidores y mantenedores |
+| [mypy estricto](docs/mypy.md) | Tipado estático, códigos opt-in, stubs, adapters y migración | Principiantes, ML engineers y mantenedores |
 | [Workflows](docs/ci-workflows.md) | Calidad, seguridad, Databricks y monitoreo | ML engineers y operadores |
 | [Migración v0.1.0](docs/migration-v0.1.md) | Adopción del nuevo contrato | Mantenedores |
 | [Perfiles](docs/profiles.md) | Selección, capacidades, fronteras y evolución | Tech leads y ML engineers |
@@ -279,7 +280,7 @@ alcance completo y cada código de error están documentados en
 | [Evaluación](docs/evaluation.md) | Casos de activación explícita, implícita y negativa | Mantenedores |
 | [Ejemplos](docs/examples.md) | Solicitudes completas para casos frecuentes | Usuarios |
 | [Solución de problemas](docs/troubleshooting.md) | Fallos comunes y diagnóstico | Todos |
-| [Gobernanza](docs/governance.md) | PRs, revisión, protección de `main` y notificaciones | Contribuidores y mantenedores |
+| [Gobernanza](docs/governance.md) | Flujo `feature → dev → main`, protecciones y notificaciones | Contribuidores y mantenedores |
 | [Contribución](CONTRIBUTING.md) | Desarrollo, pruebas y cambios de reglas | Contribuidores |
 | [Seguridad](SECURITY.md) | Credenciales, reportes y respuesta ante filtraciones | Todos |
 

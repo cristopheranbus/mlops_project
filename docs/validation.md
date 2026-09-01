@@ -162,6 +162,7 @@ escáner de secretos apropiado para tu organización.
 | `pyproject` | TOML inválido o ilegible | Corregir sintaxis y volver a resolver dependencias |
 | `quality-config` | Falta Ruff, mypy o pytest en `[tool]` | Agregar configuración y ejecutar la herramienta |
 | `ruff-config` | Ruff está incompleto, es inestable o excluye código requerido | Migrar al contrato curado y conservar sólo excepciones autorizadas |
+| `mypy-config` | mypy está desactualizado, incompleto o debilitado | Restaurar el contrato estricto, stubs y overrides externos acotados |
 | `coverage-config` | Falta `[tool.coverage]` | Definir fuente, branch coverage y reporte |
 | `package` | No hay directorio importable bajo `src` | Crear el paquete y configurar el build |
 | `config-layout` | Faltan perfiles, módulos de configuración o dependencias | Crear la estructura tipada requerida |

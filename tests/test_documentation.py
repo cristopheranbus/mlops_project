@@ -123,3 +123,25 @@ def test_ruff_guide_covers_contract_migration_and_official_sources() -> None:
             "https://docs.astral.sh/ruff/formatter/",
         )
     )
+
+
+def test_mypy_guide_covers_contract_migration_and_official_sources() -> None:
+    guide = (DOCS / "mypy.md").read_text(encoding="utf-8")
+
+    assert all(
+        term in guide
+        for term in (
+            "mypy-config",
+            "disallow_any_explicit",
+            "explicit-override",
+            "exhaustive-match",
+            "possibly-undefined",
+            "TypeGuard",
+            "TypedDict",
+            "Protocol",
+            "types-PyYAML",
+            "https://mypy.readthedocs.io/en/stable/config_file.html",
+            "https://mypy.readthedocs.io/en/stable/error_codes.html",
+            "https://mypy.readthedocs.io/en/stable/type_narrowing.html",
+        )
+    )

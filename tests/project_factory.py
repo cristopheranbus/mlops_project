@@ -32,6 +32,34 @@ jobs:
 {body}"""
 
 
+def _quality_workflow() -> str:
+    return """name: 01 - Code quality and package validation
+on:
+  pull_request:
+  push:
+    branches: [dev, main]
+permissions:
+  contents: read
+jobs:
+  branch-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "$BASE_REF" != "main" || test "$HEAD_REF" = "dev"
+  type-check:
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    runs-on: ubuntu-latest
+    steps:
+      - run: uv run mypy --no-incremental --python-version 3.12 # matrix also covers 3.13
+  quality:
+    needs: [branch-policy, type-check]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo quality
+"""
+
+
 def build_valid_project(root: Path, profile: ProfileName = "python-ml") -> Path:
     dependencies = '["pydantic>=2.11,<3", "pyyaml>=6.0.2,<7", "scikit-learn>=1.5"]'
     if profile != "python-ml":
@@ -45,6 +73,11 @@ def build_valid_project(root: Path, profile: ProfileName = "python-ml") -> Path:
         if profile == "databricks-mlops"
         else ""
     )
+    mypy_override = (
+        '\n[[tool.mypy.overrides]]\nmodule = ["mlflow"]\nignore_missing_imports = true\n'
+        if profile != "python-ml"
+        else ""
+    )
     write(
         root / "pyproject.toml",
         f"""
@@ -55,7 +88,7 @@ requires-python = ">=3.12,<3.14"
 dependencies = {dependencies}
 
 [dependency-groups]
-dev = ["ruff>=0.16.5,<0.17"]
+dev = ["mypy>=2.3.1,<2.4", "ruff>=0.16.5,<0.17", "types-pyyaml>=6.0.12,<7"]
 
 [tool.ruff]
 target-version = "py312"
@@ -73,8 +106,22 @@ select = {ruff_selectors}
 known-first-party = ["demo_project"]
 
 [tool.mypy]
+python_version = "3.12"
+files = ["src", "tests"]
 strict = true
-
+warn_unused_configs = true
+disallow_any_explicit = true
+disallow_any_unimported = true
+strict_bytes = true
+strict_equality_for_none = true
+show_error_codes = true
+show_error_code_links = true
+enable_error_code = [
+    "deprecated", "explicit-override", "exhaustive-match", "ignore-without-code",
+    "mutable-override", "possibly-undefined", "redundant-expr", "redundant-self",
+    "truthy-bool", "truthy-iterable", "unused-awaitable",
+]
+{mypy_override}
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
@@ -89,9 +136,23 @@ source = ["src"]
         ".gitignore",
         "docs/architecture.md",
         "docs/configuration.md",
+        "docs/mypy.md",
         "docs/testing.md",
     ):
         write(root / relative)
+    write(
+        root / "docs/mypy.md",
+        """# Tipos estáticos con mypy
+
+Ejecuta `uv run mypy` antes de un PR. El proyecto aplica `strict`, prohíbe `Any`
+explícito y exige códigos en cada `type: ignore`. Si una dependencia no publica tipos,
+prefiere un paquete `types-*`, un stub local o un adapter tipado antes de agregar un
+override exacto. Consulta la guía avanzada del repositorio de la skill para diagnóstico,
+errores frecuentes y ejemplos completos.
+
+Documentación oficial: https://mypy.readthedocs.io/en/stable/
+""",
+    )
     for relative in (
         "src/demo_project/__init__.py",
         "src/demo_project/config/__init__.py",
@@ -103,10 +164,7 @@ source = ["src"]
         write(root / relative, '"""Generated project module."""\n')
     write(root / "tests/__init__.py", '"""Generated project tests."""\n')
     write(root / "tests/test_demo.py", "def test_project_contract() -> None:\n    assert True\n")
-    write(
-        root / ".github/workflows/01-code-quality.yml",
-        _workflow("01 - Code quality and package validation"),
-    )
+    write(root / ".github/workflows/01-code-quality.yml", _quality_workflow())
     write(
         root / ".github/workflows/02-security.yml",
         _workflow("02 - Repository security scanning"),
@@ -141,8 +199,8 @@ import mlflow
 
 
 @contextmanager
-def start_experiment_run(config: object) -> Iterator[object]:
-    with mlflow.start_run() as run:
+def start_experiment_run(config: object, *, run_name: str) -> Iterator[object]:
+    with mlflow.start_run(run_name=run_name) as run:
         mlflow.autolog(log_input_examples=True, log_model_signatures=True, silent=False)
         mlflow.set_tags({
             "config.version": "1",

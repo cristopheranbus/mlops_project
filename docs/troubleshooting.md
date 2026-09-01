@@ -136,16 +136,26 @@ política de `noqa` y migración paso a paso.
 
 ## mypy falla
 
-La configuración es estricta. Corrige la causa en vez de propagar `Any` o ignorar el
-error globalmente. Verifica:
+Reproduce ambas variantes de CI:
+
+```powershell
+uv run mypy --no-incremental --python-version 3.12
+uv run mypy --no-incremental --python-version 3.13
+```
+
+La configuración es estricta. Corrige la causa en vez de propagar `Any`, agregar casts
+internos o ignorar el error globalmente. Verifica:
 
 - tipos de colecciones y retornos;
 - estrechamiento después de leer TOML;
 - tipos de argumentos del CLI;
 - casts justificados en fronteras dinámicas.
 
-Si una librería carece de tipos, limita cualquier excepción a la importación o frontera
-concreta y documenta por qué.
+Si una librería carece de tipos, instala su paquete `types-*`, crea un stub local o limita
+cualquier excepción a su namespace externo concreto. Si el validador informa `mypy-config`,
+revisa versión, stubs de PyYAML, alcance `src`/`tests`, flags obligatorios, códigos opt-in,
+exclusiones y overrides. La guía [mypy estricto](mypy.md) explica cada control, ejemplos,
+migración y diagnóstico por código.
 
 ## `uv build` falla
 

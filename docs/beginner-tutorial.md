@@ -157,13 +157,16 @@ archivo vacío sólo para ocultar el error. El catálogo completo está en
 git switch -c docs/clarify-local-training
 uv run ruff check .
 uv run ruff format --check .
-uv run mypy
+uv run mypy --no-incremental --python-version 3.12
+uv run mypy --no-incremental --python-version 3.13
 uv run pytest --basetemp .pytest-tmp
 git add docs README.md
 git commit -m "Clarify local training instructions"
 git push -u origin docs/clarify-local-training
 ```
 
-Abre un pull request (PR), describe la motivación y copia la evidencia de pruebas. Si `origin` apunta al
-repositorio original y no tienes permisos, crea un fork y cambia el remote. Continúa con
+Abre un pull request (PR) con base `dev`, describe la motivación y copia la evidencia de
+pruebas. Nunca selecciones `main` para una contribución normal. Si `origin` apunta al
+repositorio original y no tienes permisos, crea un fork y cambia el remote. Si mypy muestra
+un código que no conoces, consulta [mypy estricto](mypy.md). Continúa con
 [Mi primera contribución](../CONTRIBUTING.md#mi-primera-contribución).

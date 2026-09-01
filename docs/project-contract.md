@@ -92,6 +92,7 @@ proyecto_ml/
 ├── docs/
 │   ├── architecture.md
 │   ├── configuration.md
+│   ├── mypy.md
 │   └── testing.md
 ├── src/
 │   └── paquete_ml/
@@ -221,6 +222,14 @@ uv run mypy
 uv run pytest
 uv build
 ```
+
+mypy analiza `src` y `tests` en modo estricto para Python 3.12 y se reproduce en CI con
+Python 3.12/3.13. Prohíbe `Any` explícito o importado, activa diagnósticos opt-in y sólo
+tolera overrides exactos para namespaces externos. La configuración completa y su migración
+están en [mypy estricto](mypy.md).
+
+El workflow de calidad también protege el flujo `feature → dev → main`: el proyecto trabaja
+contra `dev`, mientras `main` queda reservada para promociones controladas.
 
 Ruff cubre estilo, errores comunes, imports y formato mediante el contrato curado descrito
 en [Ruff estricto](ruff.md): reglas estables para seguridad, anotaciones, pytest, paths,
