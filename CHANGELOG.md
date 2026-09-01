@@ -23,6 +23,8 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Extensive testing strategy and CI operations guides.
 - Preventive `mlflow-security` contract that blocks MLflow AI Gateway configuration in
   generated projects, with regression tests and an operational security guide.
+- Immediate `ruff-config` contract with a curated stable rule set, scoped profile
+  exceptions, real-linter regression tests, and a beginner migration guide.
 
 ### Changed
 
@@ -35,6 +37,8 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `PYSEC-2026-1845`.
 - Dependabot now batches monthly version updates by ecosystem, groups security updates
   separately, assigns the owner, and limits version-update PRs to prevent review floods.
+- Ruff is now constrained to `>=0.16.5,<0.17` and enforced consistently in this repository,
+  generated projects, validation, and CI without automatic fixes.
 
 ## [0.1.0] - 2026-08-26
 

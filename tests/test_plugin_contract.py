@@ -17,7 +17,7 @@ FULL_SHA = re.compile(r"^[0-9a-f]{40}$", re.IGNORECASE)
 
 
 def _plugin_manifest() -> dict[str, Any]:
-    return cast(dict[str, Any], json.loads(PLUGIN_MANIFEST.read_text(encoding="utf-8")))
+    return cast("dict[str, Any]", json.loads(PLUGIN_MANIFEST.read_text(encoding="utf-8")))
 
 
 def test_plugin_manifest_points_to_the_bundled_skill() -> None:
@@ -108,3 +108,12 @@ def test_repository_workflows_use_immutable_actions_and_safe_triggers() -> None:
         source = path.read_text(encoding="utf-8")
         assert "pull_request_target" not in source, path
         assert all(FULL_SHA.fullmatch(ref) for ref in ACTION_REF.findall(source)), path
+
+
+def test_quality_workflow_uses_read_only_ruff_gates() -> None:
+    source = (ROOT / ".github" / "workflows" / "01-code-quality.yml").read_text(encoding="utf-8")
+
+    assert "ruff check . --output-format=github" in source
+    assert "ruff format --check ." in source
+    assert "ruff check . --fix" not in source
+    assert "ruff format ." not in source

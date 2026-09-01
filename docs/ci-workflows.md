@@ -33,7 +33,9 @@ Impedir que un PR rompa estilo, tipos, comportamiento, compatibilidad o packagin
 
 ### Jobs
 
-`static-analysis` ejecuta lock check, Ruff, formato, mypy y smoke del CLI. `tests` usa una
+`static-analysis` ejecuta lock check, Ruff, formato, mypy y smoke del CLI. Ruff se ejecuta
+con `ruff check . --output-format=github` y `ruff format --check .`: CI informa hallazgos,
+pero nunca aplica `--fix` ni reescribe el código. `tests` usa una
 matriz de Python 3.12/3.13 sobre Ubuntu y Windows. `package` construye el wheel, lo instala
 en un entorno separado y comprueba imports. `quality` es el agregador estable que puede
 configurarse como required check.
@@ -47,7 +49,8 @@ versiones y sistemas operativos: [matrix strategies](https://docs.github.com/en/
 
 ### Fallos habituales
 
-- Ruff: corrige la primera regla y vuelve a ejecutar localmente.
+- Ruff: consulta [Ruff estricto](ruff.md), corrige la primera regla y vuelve a ejecutar
+  localmente. Si usas `--fix`, revisa el diff antes del commit.
 - mypy: alinea el tipo público; no uses `Any` para ocultar el contrato.
 - un test falla sólo en Windows: revisa paths, encoding y permisos.
 - package smoke falla: el código funcionaba desde el checkout pero no fue incluido en el wheel.

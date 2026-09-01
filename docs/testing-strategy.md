@@ -26,6 +26,7 @@ tests/
 ├── project_factory.py        construcción determinista de proyectos válidos
 ├── test_contract_matrix.py   perfiles y mutaciones generadas
 ├── test_documentation.py     enlaces, índice y contratos públicos
+├── test_generated_ruff.py    Ruff real sobre proyectos sintéticos
 ├── test_plugin_contract.py   manifiesto, metadata y workflows
 ├── test_properties.py        propiedades sobre entradas amplias
 ├── test_validate_project.py  comportamiento detallado del validador
@@ -35,6 +36,13 @@ tests/
 El factory crea siempre un proyecto válido. Cada test negativo modifica una sola
 responsabilidad. Así un fallo de configuración no queda oculto por un notebook roto o un
 workflow ausente.
+
+`test_generated_ruff.py` no simula el linter: localiza el ejecutable de Ruff instalado por
+el lock y lo ejecuta contra cada perfil sintético con su propio `pyproject.toml`. También
+demuestra los límites importantes: `assert` funciona en tests, `print` falla en lógica
+productiva y sólo se admite en el CLI, los builtins de Databricks funcionan en notebooks y
+`RUF100` rechaza un `noqa` innecesario. Esto evita que el validador y Ruff discrepen sobre
+una configuración aparentemente válida.
 
 ## Cómo usa `pytest_generate_tests`
 

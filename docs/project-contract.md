@@ -222,9 +222,11 @@ uv run pytest
 uv build
 ```
 
-Ruff cubre estilo, errores comunes, imports y formato; mypy valida con rigor el código
-propio; pytest aplica markers estrictos, timeout y al menos 90% de branch coverage; el
-build y el smoke de instalación comprueban que el paquete puede distribuirse.
+Ruff cubre estilo, errores comunes, imports y formato mediante el contrato curado descrito
+en [Ruff estricto](ruff.md): reglas estables para seguridad, anotaciones, pytest, paths,
+logging y mantenibilidad, sin `ALL` ni preview. Mypy valida con rigor el código propio;
+pytest aplica markers estrictos, timeout y al menos 90% de branch coverage; el build y el
+smoke de instalación comprueban que el paquete puede distribuirse.
 
 La matriz de CI cubre Python 3.12 y 3.13 sobre Linux y Windows. Las acciones se fijan a
 commits completos, los permisos parten de `contents: read` y ninguna prueba externa se

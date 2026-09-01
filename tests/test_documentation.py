@@ -103,3 +103,23 @@ def test_mlflow_security_guide_covers_boundary_and_official_sources() -> None:
             "https://mlflow.org/docs/latest/self-hosting/security/",
         )
     )
+
+
+def test_ruff_guide_covers_contract_migration_and_official_sources() -> None:
+    guide = (DOCS / "ruff.md").read_text(encoding="utf-8")
+
+    assert all(
+        term in guide
+        for term in (
+            "ruff-config",
+            "preview = false",
+            "S101",
+            "T201",
+            "N999",
+            "RUF100",
+            "https://docs.astral.sh/ruff/configuration/",
+            "https://docs.astral.sh/ruff/linter/#rule-selection",
+            "https://docs.astral.sh/ruff/rules/",
+            "https://docs.astral.sh/ruff/formatter/",
+        )
+    )

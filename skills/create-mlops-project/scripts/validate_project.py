@@ -8,12 +8,15 @@ import json
 import re
 import sys
 import tomllib
-from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import yaml
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
+    from typing import Any
 
 Profile = Literal["python-ml", "mlflow-local", "databricks-mlops"]
 PROFILES: tuple[Profile, ...] = ("python-ml", "mlflow-local", "databricks-mlops")
@@ -47,6 +50,56 @@ MLFLOW_GATEWAY_PATTERNS = (
     re.compile(r"/gateway/proxy(?:/|\b)", re.IGNORECASE),
     re.compile(r"\bmlflow(?:\.[a-z_][a-z0-9_]*)*\.gateway\b", re.IGNORECASE),
 )
+RUFF_REQUIRED_SELECTORS = frozenset(
+    {
+        "A",
+        "ANN",
+        "ARG",
+        "ASYNC",
+        "B",
+        "BLE",
+        "C4",
+        "DTZ",
+        "E",
+        "EM",
+        "ERA",
+        "EXE",
+        "F",
+        "FA",
+        "FLY",
+        "FURB",
+        "G",
+        "I",
+        "ICN",
+        "INP",
+        "INT",
+        "LOG",
+        "N",
+        "PERF",
+        "PGH",
+        "PIE",
+        "PLC",
+        "PLE",
+        "PLW",
+        "PT",
+        "PTH",
+        "Q",
+        "RET",
+        "RSE",
+        "RUF",
+        "S",
+        "SIM",
+        "SLOT",
+        "T10",
+        "T20",
+        "TC",
+        "UP",
+        "W",
+    }
+)
+RUFF_FORMATTER_INCOMPATIBLE = frozenset({"COM812", "ISC001"})
+DATABRICKS_BUILTINS = frozenset({"dbutils", "display", "spark"})
+DATABRICKS_NAMESPACE_PACKAGES = frozenset({"notebooks", "notebooks/databricks"})
 
 
 @dataclass(frozen=True)
@@ -73,6 +126,169 @@ def _load_pyproject(path: Path, issues: list[Issue]) -> dict[str, object]:
 def _tool_table(data: dict[str, object], name: str) -> object | None:
     tool = data.get("tool")
     return tool.get(name) if isinstance(tool, dict) else None
+
+
+def _object_table(value: object | None) -> dict[str, object] | None:
+    return cast("dict[str, object]", value) if isinstance(value, dict) else None
+
+
+def _string_items(value: object | None) -> set[str]:
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        return set()
+    return {cast("str", item) for item in value}
+
+
+def _broad_ruff_pattern(pattern: str) -> bool:
+    normalized = pattern.replace("\\", "/").removeprefix("./").rstrip("/").lower()
+    return normalized in {
+        "*",
+        "**",
+        "*.py",
+        "**/*.py",
+        "src",
+        "src/**",
+        "tests",
+        "tests/**",
+        "notebooks",
+        "notebooks/**",
+        "notebooks/databricks",
+        "notebooks/databricks/**",
+    }
+
+
+def _ruff_exclusion_hides_required_code(pattern: str) -> bool:
+    normalized = pattern.replace("\\", "/").removeprefix("./").rstrip("/").lower()
+    without_recursive_prefix = normalized.removeprefix("**/")
+    return any(
+        without_recursive_prefix == scope or without_recursive_prefix.startswith(f"{scope}/")
+        for scope in ("src", "tests", "notebooks/databricks")
+    )
+
+
+def _allowed_ruff_ignores(pattern: str) -> set[str]:
+    normalized = pattern.replace("\\", "/").removeprefix("./").lower()
+    if normalized.startswith("tests/"):
+        return {"S101"}
+    if normalized == "notebooks/databricks/**/*.py":
+        return {"N999"}
+    if normalized == "src/**/cli.py" or (
+        normalized.startswith("src/") and normalized.endswith("/cli.py")
+    ):
+        return {"T201"}
+    return set()
+
+
+def _validate_ruff_configuration(
+    data: dict[str, object],
+    profile: Profile,
+    dependencies: list[str],
+    issues: list[Issue],
+) -> None:
+    ruff = _object_table(_tool_table(data, "ruff"))
+    if ruff is None:
+        issues.append(Issue("error", "ruff-config", "Missing [tool.ruff] configuration"))
+        return
+    if ruff.get("target-version") != "py312" or ruff.get("line-length") != 100:
+        issues.append(
+            Issue(
+                "error",
+                "ruff-config",
+                "Ruff must target py312 with a 100-character line length",
+            )
+        )
+    if ruff.get("preview") is not False:
+        issues.append(
+            Issue("error", "ruff-config", "Ruff preview rules must be explicitly disabled")
+        )
+
+    lint = _object_table(ruff.get("lint"))
+    if lint is None:
+        issues.append(Issue("error", "ruff-config", "Missing [tool.ruff.lint] configuration"))
+        return
+    selectors = _string_items(lint.get("select")) | _string_items(lint.get("extend-select"))
+    if "ALL" in selectors:
+        issues.append(Issue("error", "ruff-config", "Ruff select = ['ALL'] is not allowed"))
+    missing = sorted(RUFF_REQUIRED_SELECTORS - selectors)
+    if missing:
+        issues.append(
+            Issue(
+                "error",
+                "ruff-config",
+                f"Ruff required selectors are missing: {', '.join(missing)}",
+            )
+        )
+    incompatible = sorted(RUFF_FORMATTER_INCOMPATIBLE & selectors)
+    if incompatible:
+        issues.append(
+            Issue(
+                "error",
+                "ruff-config",
+                f"Ruff formatter-incompatible selectors are enabled: {', '.join(incompatible)}",
+            )
+        )
+    if _string_items(lint.get("ignore")) or _string_items(lint.get("extend-ignore")):
+        issues.append(Issue("error", "ruff-config", "Global Ruff ignores are not allowed"))
+    if ruff.get("preview") is True or lint.get("preview") is True:
+        issues.append(Issue("error", "ruff-config", "Ruff preview rules are not allowed"))
+
+    for key in ("exclude", "extend-exclude"):
+        issues.extend(
+            Issue(
+                "error",
+                "ruff-config",
+                f"Ruff exclusion hides required project code: {pattern}",
+            )
+            for pattern in _string_items(ruff.get(key))
+            if _ruff_exclusion_hides_required_code(pattern)
+        )
+
+    per_file = _object_table(lint.get("per-file-ignores")) or {}
+    for pattern, raw_codes in per_file.items():
+        codes = _string_items(raw_codes)
+        if _broad_ruff_pattern(pattern) or not codes <= _allowed_ruff_ignores(pattern):
+            issues.append(
+                Issue(
+                    "error",
+                    "ruff-config",
+                    f"Ruff per-file ignore is too broad or unsupported: {pattern}",
+                )
+            )
+
+    builtins = _string_items(ruff.get("builtins"))
+    if profile == "databricks-mlops" and not builtins >= DATABRICKS_BUILTINS:
+        issues.append(
+            Issue(
+                "error",
+                "ruff-config",
+                "Databricks Ruff configuration requires dbutils, display, and spark builtins",
+            )
+        )
+    if profile != "databricks-mlops" and DATABRICKS_BUILTINS & builtins:
+        issues.append(
+            Issue(
+                "error",
+                "ruff-config",
+                "Databricks builtins are only allowed in the databricks-mlops profile",
+            )
+        )
+    namespace_packages = _string_items(ruff.get("namespace-packages"))
+    if profile == "databricks-mlops" and not namespace_packages >= DATABRICKS_NAMESPACE_PACKAGES:
+        issues.append(
+            Issue(
+                "error",
+                "ruff-config",
+                "Databricks Ruff configuration must declare notebook namespace packages",
+            )
+        )
+    normalized_dependencies = {item.replace(" ", "") for item in dependencies}
+    if "ruff>=0.16.5,<0.17" not in normalized_dependencies:
+        issues.append(
+            Issue(
+                "error",
+                "ruff-config",
+                "Ruff must be declared as ruff>=0.16.5,<0.17 in project dependencies",
+            )
+        )
 
 
 def _dependency_strings(data: dict[str, object]) -> list[str]:
@@ -104,7 +320,7 @@ def _load_yaml(path: Path, issues: list[Issue], code: str) -> dict[str, Any] | N
     if not isinstance(loaded, dict):
         issues.append(Issue("error", code, f"YAML root must be a mapping: {path.name}"))
         return None
-    return cast(dict[str, Any], loaded)
+    return cast("dict[str, Any]", loaded)
 
 
 def _primary_package(root: Path, issues: list[Issue]) -> Path | None:
@@ -177,20 +393,21 @@ def _validate_configuration(
     if not any(item.startswith("pyyaml") for item in dependencies):
         issues.append(Issue("error", "config-layout", "Configuration requires a pyyaml dependency"))
     if package is not None:
-        for relative in (
+        required_components = (
             "config/models.py",
             "config/loader.py",
             "config/hashing.py",
             "workflows",
-        ):
-            if not (package / relative).exists():
-                issues.append(
-                    Issue(
-                        "error",
-                        "config-layout",
-                        f"Required package component is missing: src/{package.name}/{relative}",
-                    )
-                )
+        )
+        issues.extend(
+            Issue(
+                "error",
+                "config-layout",
+                f"Required package component is missing: src/{package.name}/{relative}",
+            )
+            for relative in required_components
+            if not (package / relative).exists()
+        )
 
 
 def _call_name(node: ast.AST) -> str:
@@ -483,7 +700,7 @@ def _notebook_source(path: Path, issues: list[Issue]) -> str | None:
 
 def _walk_mappings(value: object) -> Iterable[dict[str, Any]]:
     if isinstance(value, dict):
-        mapping = cast(dict[str, Any], value)
+        mapping = cast("dict[str, Any]", value)
         yield mapping
         for child in mapping.values():
             yield from _walk_mappings(child)
@@ -552,7 +769,7 @@ def _validate_databricks(root: Path, package: Path | None, issues: list[Issue]) 
         for mapping in _walk_mappings(data):
             task = mapping.get("notebook_task")
             if isinstance(task, dict) and isinstance(task.get("notebook_path"), str):
-                notebook_tasks.append((yaml_path, cast(str, task["notebook_path"])))
+                notebook_tasks.append((yaml_path, cast("str", task["notebook_path"])))
     if not notebook_tasks:
         issues.append(Issue("error", "databricks-task", "Bundle must define a notebook_task"))
         return
@@ -572,7 +789,7 @@ def _validate_databricks(root: Path, package: Path | None, issues: list[Issue]) 
 
 def _infer_profile(root: Path, requested: str, issues: list[Issue]) -> Profile:
     if requested != "auto":
-        return cast(Profile, requested)
+        return cast("Profile", requested)
     marker = root / ".mlops-profile"
     if marker.is_file():
         value = marker.read_text(encoding="utf-8").strip()
@@ -635,11 +852,11 @@ def validate_project(root: Path, requested_profile: str = "auto") -> tuple[Profi
 
     pyproject_path = root / "pyproject.toml"
     data = _load_pyproject(pyproject_path, issues) if pyproject_path.is_file() else {}
-    for tool_name in ("ruff", "mypy", "pytest"):
-        if _tool_table(data, tool_name) is None:
-            issues.append(
-                Issue("error", "quality-config", f"Missing [tool.{tool_name}] configuration")
-            )
+    issues.extend(
+        Issue("error", "quality-config", f"Missing [tool.{tool_name}] configuration")
+        for tool_name in ("ruff", "mypy", "pytest")
+        if _tool_table(data, tool_name) is None
+    )
     if _tool_table(data, "coverage") is None:
         issues.append(Issue("error", "coverage-config", "Missing [tool.coverage] configuration"))
 
@@ -649,6 +866,7 @@ def validate_project(root: Path, requested_profile: str = "auto") -> tuple[Profi
         issues.append(Issue("error", "tests", "No test_*.py files found"))
 
     dependencies = _dependency_strings(data)
+    _validate_ruff_configuration(data, profile, dependencies, issues)
     _validate_workflows(root, profile, issues)
     _validate_configuration(root, package, profile, dependencies, issues)
     _validate_python_layout(root, issues)

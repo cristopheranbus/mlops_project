@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+import json
+from typing import TYPE_CHECKING
 
-ProfileName = str
+from scripts.validate_project import RUFF_REQUIRED_SELECTORS
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+type ProfileName = str
 
 
 def write(path: Path, content: str = "content\n") -> None:
@@ -32,16 +38,39 @@ def build_valid_project(root: Path, profile: ProfileName = "python-ml") -> Path:
         dependencies = (
             '["mlflow>=3.1,<4", "pydantic>=2.11,<3", "pyyaml>=6.0.2,<7", "scikit-learn>=1.5"]'
         )
+    ruff_selectors = json.dumps(sorted(RUFF_REQUIRED_SELECTORS))
+    ruff_databricks_settings = (
+        'builtins = ["dbutils", "display", "spark"]\n'
+        'namespace-packages = ["notebooks", "notebooks/databricks"]\n'
+        if profile == "databricks-mlops"
+        else ""
+    )
     write(
         root / "pyproject.toml",
         f"""
 [project]
 name = "demo-project"
 version = "0.1.0"
+requires-python = ">=3.12,<3.14"
 dependencies = {dependencies}
 
+[dependency-groups]
+dev = ["ruff>=0.16.5,<0.17"]
+
 [tool.ruff]
+target-version = "py312"
 line-length = 100
+preview = false
+{ruff_databricks_settings}
+[tool.ruff.lint]
+select = {ruff_selectors}
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+"src/**/cli.py" = ["T201"]
+"notebooks/databricks/**/*.py" = ["N999"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["demo_project"]
 
 [tool.mypy]
 strict = true
@@ -58,17 +87,22 @@ source = ["src"]
         "uv.lock",
         "README.md",
         ".gitignore",
-        "src/demo_project/__init__.py",
-        "src/demo_project/config/models.py",
-        "src/demo_project/config/loader.py",
-        "src/demo_project/config/hashing.py",
-        "src/demo_project/workflows/__init__.py",
-        "tests/test_demo.py",
         "docs/architecture.md",
         "docs/configuration.md",
         "docs/testing.md",
     ):
         write(root / relative)
+    for relative in (
+        "src/demo_project/__init__.py",
+        "src/demo_project/config/__init__.py",
+        "src/demo_project/config/models.py",
+        "src/demo_project/config/loader.py",
+        "src/demo_project/config/hashing.py",
+        "src/demo_project/workflows/__init__.py",
+    ):
+        write(root / relative, '"""Generated project module."""\n')
+    write(root / "tests/__init__.py", '"""Generated project tests."""\n')
+    write(root / "tests/test_demo.py", "def test_project_contract() -> None:\n    assert True\n")
     write(
         root / ".github/workflows/01-code-quality.yml",
         _workflow("01 - Code quality and package validation"),
@@ -92,21 +126,27 @@ Antes de incorporar AI Gateway, revisa GHSA-h7x2-h6g9-p789, valida una versión 
 aplica autorización administrativa, una allowlist HTTPS y controles de egress.
 """,
         )
-        write(root / "tests/integration/test_mlflow.py")
+        write(
+            root / "tests/integration/test_mlflow.py",
+            "def test_mlflow_contract() -> None:\n    assert True\n",
+        )
+        write(root / "tests/integration/__init__.py", '"""Integration tests."""\n')
+        write(root / "src/demo_project/tracking/__init__.py", '"""Tracking adapters."""\n')
         write(
             root / "src/demo_project/tracking/mlflow.py",
-            """from contextlib import contextmanager
+            """from collections.abc import Iterator
+from contextlib import contextmanager
 
 import mlflow
 
 
 @contextmanager
-def start_experiment_run(config):
+def start_experiment_run(config: object) -> Iterator[object]:
     with mlflow.start_run() as run:
         mlflow.autolog(log_input_examples=True, log_model_signatures=True, silent=False)
         mlflow.set_tags({
             "config.version": "1",
-            "config.environment": "local",
+            "config.environment": str(config),
             "config.hash": "sha256",
         })
         mlflow.log_artifact("resolved_config.yaml")
@@ -118,9 +158,9 @@ def start_experiment_run(config):
             """from demo_project.tracking.mlflow import start_experiment_run
 
 
-def run_training(config):
+def run_training(config: object) -> None:
     with start_experiment_run(config, run_name="train"):
-        return None
+        pass
 """,
         )
     if profile == "databricks-mlops":
@@ -131,9 +171,13 @@ def run_training(config):
             "docs/operations.md",
             "docs/release-checklist.md",
             "docs/rollback.md",
-            "tests/external/test_workspace.py",
         ):
             write(root / relative)
+        write(
+            root / "tests/external/test_workspace.py",
+            "def test_workspace_contract() -> None:\n    assert True\n",
+        )
+        write(root / "tests/external/__init__.py", '"""External tests."""\n')
         write(
             root / "notebooks/databricks/20_train.py",
             """# Databricks notebook source

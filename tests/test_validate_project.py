@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from pytest import CaptureFixture
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    import pytest
 
 from scripts.validate_project import main, validate_project
 from tests.project_factory import build_valid_project, write
@@ -44,6 +47,141 @@ def test_incomplete_quality_configuration_is_reported(tmp_path: Path) -> None:
     root = _valid_project(tmp_path)
     _write(root / "pyproject.toml", '[project]\nname = "demo"\nversion = "0.1.0"\n')
     assert {"quality-config", "coverage-config"} <= _error_codes(root)
+
+
+def test_missing_required_ruff_selector_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(root / "pyproject.toml", pyproject.replace('"W"', '"D"', 1))
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_ruff_all_selector_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    lines = [
+        'select = ["ALL"]' if line.startswith("select = ") else line
+        for line in pyproject.splitlines()
+    ]
+    _write(root / "pyproject.toml", "\n".join(lines))
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_global_ruff_ignore_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace("[tool.ruff.lint]\n", '[tool.ruff.lint]\nignore = ["E501"]\n'),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_formatter_incompatible_ruff_selector_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace("select = [", 'select = ["COM812", '),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_broad_ruff_exclusion_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace("[tool.ruff]\n", '[tool.ruff]\nexclude = ["src/**"]\n'),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_broad_ruff_per_file_ignore_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace(
+            "[tool.ruff.lint.per-file-ignores]\n",
+            '[tool.ruff.lint.per-file-ignores]\n"*.py" = ["F401"]\n',
+        ),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_databricks_profile_requires_ruff_builtins(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace('builtins = ["dbutils", "display", "spark"]\n', ""),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_ruff_cannot_exclude_a_nested_source_path(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace(
+            "[tool.ruff]\n",
+            '[tool.ruff]\nextend-exclude = ["src/demo_project/generated.py"]\n',
+        ),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_cli_ignore_is_rejected_outside_source_package(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace(
+            '"src/**/cli.py" = ["T201"]',
+            '"scripts/cli.py" = ["T201"]',
+        ),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_databricks_profile_requires_notebook_namespace_packages(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace(
+            'namespace-packages = ["notebooks", "notebooks/databricks"]\n',
+            "",
+        ),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_non_databricks_profile_rejects_databricks_builtins(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace(
+            "[tool.ruff]\n",
+            '[tool.ruff]\nbuiltins = ["dbutils", "display", "spark"]\n',
+        ),
+    )
+    assert "ruff-config" in _error_codes(root)
+
+
+def test_ruff_preview_and_outdated_dependency_are_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace("preview = false", "preview = true").replace(
+            "ruff>=0.16.5,<0.17", "ruff>=0.12,<0.13"
+        ),
+    )
+    assert "ruff-config" in _error_codes(root)
 
 
 def test_placeholder_is_reported(tmp_path: Path) -> None:
@@ -398,12 +536,12 @@ def test_validation_does_not_modify_files(tmp_path: Path) -> None:
     assert before == after
 
 
-def test_cli_reports_success(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+def test_cli_reports_success(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     root = _valid_project(tmp_path)
     assert main([str(root)]) == 0
     assert "Result: 0 error(s)" in capsys.readouterr().out
 
 
-def test_cli_reports_failure(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+def test_cli_reports_failure(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     assert main([str(tmp_path / "missing")]) == 1
     assert "ERROR [path]" in capsys.readouterr().out
