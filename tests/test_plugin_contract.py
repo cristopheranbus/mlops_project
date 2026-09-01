@@ -61,6 +61,32 @@ def test_github_yaml_files_parse() -> None:
         assert yaml.safe_load(path.read_text(encoding="utf-8")) is not None, path
 
 
+def test_dependabot_batches_updates_without_pr_flooding() -> None:
+    config = yaml.safe_load((ROOT / ".github" / "dependabot.yml").read_text(encoding="utf-8"))
+
+    assert config["version"] == 2
+    updates = config["updates"]
+    assert {item["package-ecosystem"] for item in updates} == {"uv", "github-actions"}
+    for item in updates:
+        assert item["schedule"]["interval"] == "monthly"
+        assert item["open-pull-requests-limit"] == 1
+        assert item["assignees"] == ["cristopheranbus"]
+        assert "labels" not in item
+
+        groups = item["groups"]
+        version_groups = [
+            group for group in groups.values() if group["applies-to"] == "version-updates"
+        ]
+        security_groups = [
+            group for group in groups.values() if group["applies-to"] == "security-updates"
+        ]
+        assert len(version_groups) == 1
+        assert len(security_groups) == 1
+        assert version_groups[0]["patterns"] == ["*"]
+        assert set(version_groups[0]["update-types"]) == {"major", "minor", "patch"}
+        assert security_groups[0]["patterns"] == ["*"]
+
+
 def test_repository_workflows_have_numbered_public_names() -> None:
     expected_names = {
         "01-code-quality.yml": "01 - Code quality and package validation",

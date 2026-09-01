@@ -33,6 +33,8 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The default generated-project quality floor is now 90% branch coverage.
 - The development test runner now requires pytest 9.0.3 or newer to avoid
   `PYSEC-2026-1845`.
+- Dependabot now batches monthly version updates by ecosystem, groups security updates
+  separately, assigns the owner, and limits version-update PRs to prevent review floods.
 
 ## [0.1.0] - 2026-08-26
 

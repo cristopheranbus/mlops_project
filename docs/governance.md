@@ -67,6 +67,39 @@ En la configuración personal de notificaciones se puede habilitar entrega en Gi
 correo electrónico para actividad observada o participada. La elección de correo es
 personal y no se versiona en este repositorio.
 
+## Dependabot sin avalancha de pull requests
+
+Dependabot permanece habilitado porque detecta actualizaciones de dependencias y acciones,
+pero `.github/dependabot.yml` limita el ruido operativo:
+
+- las actualizaciones de versión se revisan mensualmente;
+- todas las versiones `major`, `minor` y `patch` de Python se agrupan en un PR;
+- todas las actualizaciones de GitHub Actions se agrupan en otro PR;
+- sólo puede permanecer abierto un PR de versión por ecosistema;
+- las actualizaciones de seguridad se agrupan separadamente y no esperan el ciclo mensual;
+- el propietario queda asignado explícitamente;
+- Dependabot no aprueba ni fusiona cambios por sí solo;
+- no se solicitan etiquetas inexistentes.
+
+En condiciones normales habrá como máximo dos PR de mantenimiento periódico: uno para
+`uv` y uno para `github-actions`. Un advisory de seguridad puede generar un grupo
+adicional porque GitHub no somete los security updates a
+`open-pull-requests-limit`; conservar esa excepción evita retrasar correcciones urgentes.
+
+Cuando aparezca un PR agrupado:
+
+1. revisa release notes, cambios incompatibles y permisos;
+2. verifica el lockfile o los SHA de Actions;
+3. espera todos los checks;
+4. prueba manualmente el comportamiento afectado cuando sea un cambio `major`;
+5. aprueba y fusiona sólo después de comprender el grupo completo.
+
+No añadas un workflow de auto-approve o auto-merge. La agrupación reduce volumen sin
+eliminar la revisión humana. Consulta la
+[referencia oficial de opciones de Dependabot](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference)
+y la guía oficial para
+[optimizar la creación de PR](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates).
+
 ## Draft pull requests
 
 GitHub no solicita automáticamente revisión de code owners mientras un PR permanece como

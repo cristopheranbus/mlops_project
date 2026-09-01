@@ -86,6 +86,11 @@ Cada `uses:` apunta a un SHA completo y conserva un comentario con la versión l
 Dependabot puede proponer el SHA nuevo. Esto evita que un tag mutable cambie código sin un
 PR visible.
 
+Dependabot agrupa los cambios periódicos por ecosistema y los propone mensualmente. Las
+actualizaciones de seguridad conservan un grupo separado y prioritario. La configuración,
+los límites y el procedimiento de revisión están documentados en
+[Gobernanza](governance.md#dependabot-sin-avalancha-de-pull-requests).
+
 ### Permisos y triggers
 
 La raíz de cada workflow declara:
