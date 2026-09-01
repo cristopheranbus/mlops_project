@@ -1,7 +1,24 @@
 # Gobernanza y revisión de contribuciones
 
 Este proyecto acepta contribuciones mediante pull requests. El objetivo es permitir que
-otras personas propongan cambios sin perder trazabilidad ni control sobre `main`.
+otras personas propongan cambios sin perder trazabilidad ni control sobre `dev` y `main`.
+
+## Modelo de ramas
+
+```text
+feature / fix / docs / chore
+              │
+              ▼  PR + squash merge
+             dev   ← rama predeterminada y de integración
+              │
+              ▼  PR de promoción + merge commit
+             main  ← rama estable y de publicación
+```
+
+`main` es sagrada: no es una rama de trabajo, no recibe pushes directos, no sirve como base
+para una feature y sólo acepta promociones desde `dev`. Una sincronización excepcional
+`main → dev` se permite para incorporar una corrección de publicación y siempre usa merge
+commit, nunca squash, para conservar la relación de ancestría.
 
 ## Responsabilidad de revisión
 
@@ -19,35 +36,51 @@ requiera revisión de code owners.
 1. crear un fork o una rama según los permisos disponibles;
 2. realizar un cambio enfocado;
 3. ejecutar todos los gates locales;
-4. abrir un pull request hacia `main`;
+4. abrir un pull request hacia `dev`;
 5. completar la plantilla y declarar verificaciones no ejecutadas;
 6. esperar CI y revisión del propietario;
 7. corregir observaciones mediante commits adicionales;
 8. resolver todas las conversaciones;
-9. hacer merge solo después de cumplir revisiones y checks.
+9. hacer squash merge a `dev` sólo después de cumplir conversaciones y checks.
 
-## Política recomendada para `main`
+El job `branch-policy`, incluido en el agregador obligatorio `quality`, rechaza features
+directas a `main`, cualquier origen distinto de `dev` para una promoción y PR de Dependabot
+que no apunten a `dev`.
+
+## Protección aplicada
+
+Ambas ramas exigen pull request, check `quality` actualizado con la base, conversaciones
+resueltas, protección para administradores y prohibición de force push y eliminación. El
+repositorio tiene un solo mantenedor, por lo que actualmente requiere cero aprobaciones:
+GitHub no permite aprobar el PR propio. Al incorporar un segundo mantenedor se debe restaurar
+una aprobación y, si corresponde, la aprobación de `CODEOWNERS`.
+
+`dev` es la rama predeterminada. Por ello GitHub propone `dev` como base para PR nuevos,
+Dependabot trabaja contra `dev` y los workflows programados se resuelven desde la línea de
+desarrollo.
+
+## Política de `main`
 
 Una vez creado el repositorio remoto, configurar una regla para `main` con:
 
 - pull request obligatorio antes del merge;
-- al menos una aprobación;
-- aprobación requerida de code owners;
-- invalidación de aprobaciones obsoletas cuando cambia el diff;
+- cero aprobaciones mientras exista un solo mantenedor;
 - resolución obligatoria de conversaciones;
 - check requerido del job `quality`;
 - prohibición de force push;
 - prohibición de eliminar la rama;
 - aplicación de la regla a administradores cuando el plan de GitHub lo permita;
-- historial lineal si se adopta squash merge o rebase como política.
+- promociones exclusivamente desde `dev`.
 
 El check requerido debe usar un nombre único. El workflow actual contiene el job
-`quality`, que ejecuta lint, formato, tipado y pruebas.
+`quality`, que agrega política de ramas, lint, formato, tipado, pruebas y packaging.
 
 ## Estrategia de merge
 
-Se recomienda **squash merge** para mantener un commit enfocado por contribución. El título
-final debe describir el cambio en modo imperativo. Antes de hacer merge:
+Las features hacia `dev` usan **squash merge** para producir un commit enfocado. Las
+promociones `dev → main` y las sincronizaciones `main → dev` usan **merge commit** para
+preservar la ancestría y evitar divergencias artificiales. Nunca sincronices estas ramas con
+squash. El título final debe describir el cambio en modo imperativo. Antes de hacer merge:
 
 - revisar el diff completo;
 - confirmar que CI corresponde al último commit;
@@ -76,6 +109,7 @@ pero `.github/dependabot.yml` limita el ruido operativo:
 - todas las versiones `major`, `minor` y `patch` de Python se agrupan en un PR;
 - todas las actualizaciones de GitHub Actions se agrupan en otro PR;
 - sólo puede permanecer abierto un PR de versión por ecosistema;
+- todos los PR de Dependabot apuntan explícitamente a `dev`;
 - las actualizaciones de seguridad se agrupan separadamente y no esperan el ciclo mensual;
 - el propietario queda asignado explícitamente;
 - Dependabot no aprueba ni fusiona cambios por sí solo;

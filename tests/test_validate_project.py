@@ -172,6 +172,121 @@ def test_non_databricks_profile_rejects_databricks_builtins(tmp_path: Path) -> N
     assert "ruff-config" in _error_codes(root)
 
 
+def test_missing_required_mypy_flag_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(root / "pyproject.toml", pyproject.replace("strict_bytes = true\n", ""))
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_missing_required_mypy_error_code_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(root / "pyproject.toml", pyproject.replace('"unused-awaitable",', ""))
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_mypy_must_check_source_and_tests(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml", pyproject.replace('files = ["src", "tests"]', 'files = ["src"]')
+    )
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_global_mypy_weakening_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace("[tool.mypy]\n", "[tool.mypy]\nignore_missing_imports = true\n"),
+    )
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_mypy_cannot_exclude_owned_code(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace("[tool.mypy]\n", '[tool.mypy]\nexclude = "src"\n'),
+    )
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_broad_or_owned_mypy_override_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject
+        + '\n[[tool.mypy.overrides]]\nmodule = ["demo_project.*"]\nignore_errors = true\n',
+    )
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_exact_external_mypy_override_is_allowed(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject
+        + '\n[[tool.mypy.overrides]]\nmodule = ["vendor_package", "vendor_package.*"]\n'
+        + "ignore_missing_imports = true\n",
+    )
+    _, issues = validate_project(root)
+    assert issues == []
+
+
+def test_mypy_requires_pinned_tool_and_yaml_stubs(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace('"mypy>=2.3.1,<2.4", ', "").replace(', "types-pyyaml>=6.0.12,<7"', ""),
+    )
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_declared_local_stub_directory_must_exist(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace("[tool.mypy]\n", '[tool.mypy]\nmypy_path = "typings"\n'),
+    )
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_empty_local_stub_directory_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    (root / "typings").mkdir()
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject.replace("[tool.mypy]\n", '[tool.mypy]\nmypy_path = "typings"\n'),
+    )
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_mypy_override_rejects_ambiguous_glob(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    _write(
+        root / "pyproject.toml",
+        pyproject
+        + '\n[[tool.mypy.overrides]]\nmodule = ["vendor_*"]\nignore_missing_imports = true\n',
+    )
+    assert "mypy-config" in _error_codes(root)
+
+
+def test_incomplete_generated_mypy_documentation_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path)
+    _write(root / "docs/mypy.md", "# mypy\n\nuv run mypy\n")
+    assert "mypy-config" in _error_codes(root)
+
+
 def test_ruff_preview_and_outdated_dependency_are_reported(tmp_path: Path) -> None:
     root = _valid_project(tmp_path)
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")

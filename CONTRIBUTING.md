@@ -47,7 +47,7 @@ uv run mypy --version
 6. ejecuta todos los gates;
 7. revisa el diff completo y busca secretos;
 8. usa commits enfocados y mensajes descriptivos;
-9. abre un pull request hacia `main` y completa su plantilla;
+9. abre un pull request hacia `dev` y completa su plantilla;
 10. responde la revisión y mantén el PR actualizado hasta que CI esté verde.
 
 Antes de editar, comprueba el estado del repositorio:
@@ -58,8 +58,9 @@ git status --short --branch
 
 No descartes ni reformatees cambios ajenos que no pertenezcan a tu contribución.
 
-`@cristopheranbus` es code owner global y debe revisar los cambios antes del merge. La
-política completa está en [docs/governance.md](docs/governance.md).
+`@cristopheranbus` es code owner global y recibe la solicitud de revisión. La política
+completa está en [docs/governance.md](docs/governance.md). `main` no es una rama de trabajo:
+las contribuciones llegan primero a `dev` y sólo una promoción controlada llega a `main`.
 
 ## Mi primera contribución
 
@@ -91,12 +92,15 @@ git commit -m "Clarify beginner documentation"
 git push -u origin docs/my-first-change
 ```
 
+Al crear el PR, selecciona `dev` como base. Las features se fusionan mediante squash. La
+promoción posterior `dev → main` pertenece al mantenedor y usa merge commit.
+
 ### Glosario breve
 
 | Concepto | Significado |
 | --- | --- |
 | fork | Copia remota personal desde la que propones cambios |
-| branch | Línea de trabajo separada de `main` |
+| branch | Línea de trabajo separada, normalmente creada desde `dev` |
 | commit | Snapshot revisable de cambios relacionados |
 | CI | Controles automáticos ejecutados por GitHub Actions |
 | PR | Solicitud para revisar e integrar una branch |

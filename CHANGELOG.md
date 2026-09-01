@@ -25,6 +25,9 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   generated projects, with regression tests and an operational security guide.
 - Immediate `ruff-config` contract with a curated stable rule set, scoped profile
   exceptions, real-linter regression tests, and a beginner migration guide.
+- Immediate `mypy-config` contract with strict typed boundaries, opt-in diagnostics,
+  external-only overrides, real-analyzer regression tests, and an extensive Spanish guide.
+- Automated branch-policy gate enforcing the `feature → dev → main` promotion model.
 
 ### Changed
 
@@ -39,6 +42,8 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   separately, assigns the owner, and limits version-update PRs to prevent review floods.
 - Ruff is now constrained to `>=0.16.5,<0.17` and enforced consistently in this repository,
   generated projects, validation, and CI without automatic fixes.
+- `dev` is now the default integration branch; Dependabot targets it explicitly, while
+  `main` is reserved for controlled merge-commit promotions.
 
 ## [0.1.0] - 2026-08-26
 

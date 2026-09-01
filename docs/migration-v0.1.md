@@ -17,6 +17,8 @@ la versión actual.
 - workflows separados de bundle y monitoreo en `databricks-mlops`;
 - 90% de branch coverage, markers estrictos y timeout finito.
 - Ruff 0.16.5 con reglas curadas, preview desactivado y excepciones acotadas.
+- mypy 2.3.1 estricto sobre `src` y `tests`, sin `Any` explícito ni debilitamientos globales.
+- flujo Git `feature → dev → main`; `main` deja de ser una rama de trabajo.
 
 ## Orden recomendado
 
@@ -32,7 +34,8 @@ la versión actual.
 10. reemplaza el workflow único por `01` y `02`, y agrega `03`/`04` en Databricks;
 11. migra casos compartidos al inventario de `pytest_generate_tests`;
 12. migra Ruff siguiendo [la guía estricta](ruff.md), sin ignores globales;
-13. ejecuta el validador y todos los quality gates.
+13. migra mypy siguiendo [la guía estricta](mypy.md), instala stubs y elimina `Any`;
+14. abre el PR hacia `dev` y ejecuta el validador y todos los quality gates.
 
 ## Compatibilidad por perfil
 

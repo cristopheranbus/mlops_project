@@ -4,7 +4,7 @@ import json
 import re
 import tomllib
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import yaml
 
@@ -16,8 +16,8 @@ ACTION_REF = re.compile(r"uses:\s*[^@\s]+@([^\s#]+)")
 FULL_SHA = re.compile(r"^[0-9a-f]{40}$", re.IGNORECASE)
 
 
-def _plugin_manifest() -> dict[str, Any]:
-    return cast("dict[str, Any]", json.loads(PLUGIN_MANIFEST.read_text(encoding="utf-8")))
+def _plugin_manifest() -> dict[str, object]:
+    return cast("dict[str, object]", json.loads(PLUGIN_MANIFEST.read_text(encoding="utf-8")))
 
 
 def test_plugin_manifest_points_to_the_bundled_skill() -> None:
@@ -69,6 +69,7 @@ def test_dependabot_batches_updates_without_pr_flooding() -> None:
     assert {item["package-ecosystem"] for item in updates} == {"uv", "github-actions"}
     for item in updates:
         assert item["schedule"]["interval"] == "monthly"
+        assert item["target-branch"] == "dev"
         assert item["open-pull-requests-limit"] == 1
         assert item["assignees"] == ["cristopheranbus"]
         assert "labels" not in item
@@ -117,3 +118,14 @@ def test_quality_workflow_uses_read_only_ruff_gates() -> None:
     assert "ruff format --check ." in source
     assert "ruff check . --fix" not in source
     assert "ruff format ." not in source
+
+
+def test_quality_workflow_enforces_branch_and_mypy_contracts() -> None:
+    source = (ROOT / ".github" / "workflows" / "01-code-quality.yml").read_text(encoding="utf-8")
+
+    assert "branch-policy:" in source
+    assert '"$BASE_REF" == "main" && "$HEAD_REF" != "dev"' in source
+    assert "type-check:" in source
+    assert "--no-incremental" in source
+    assert "--junit-format per_file" in source
+    assert "needs: [branch-policy, static-analysis, type-check, tests, package]" in source

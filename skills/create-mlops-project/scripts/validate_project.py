@@ -16,7 +16,6 @@ import yaml
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
-    from typing import Any
 
 Profile = Literal["python-ml", "mlflow-local", "databricks-mlops"]
 PROFILES: tuple[Profile, ...] = ("python-ml", "mlflow-local", "databricks-mlops")
@@ -100,6 +99,43 @@ RUFF_REQUIRED_SELECTORS = frozenset(
 RUFF_FORMATTER_INCOMPATIBLE = frozenset({"COM812", "ISC001"})
 DATABRICKS_BUILTINS = frozenset({"dbutils", "display", "spark"})
 DATABRICKS_NAMESPACE_PACKAGES = frozenset({"notebooks", "notebooks/databricks"})
+MYPY_REQUIRED_FLAGS = frozenset(
+    {
+        "disallow_any_explicit",
+        "disallow_any_unimported",
+        "show_error_code_links",
+        "show_error_codes",
+        "strict",
+        "strict_bytes",
+        "strict_equality_for_none",
+        "warn_unused_configs",
+    }
+)
+MYPY_REQUIRED_ERROR_CODES = frozenset(
+    {
+        "deprecated",
+        "explicit-override",
+        "exhaustive-match",
+        "ignore-without-code",
+        "mutable-override",
+        "possibly-undefined",
+        "redundant-expr",
+        "redundant-self",
+        "truthy-bool",
+        "truthy-iterable",
+        "unused-awaitable",
+    }
+)
+MYPY_OVERRIDE_WEAKENING_FLAGS = frozenset(
+    {
+        "allow_untyped_calls",
+        "allow_untyped_defs",
+        "allow_incomplete_defs",
+        "allow_untyped_decorators",
+        "disable_error_code",
+        "ignore_errors",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -136,6 +172,12 @@ def _string_items(value: object | None) -> set[str]:
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
         return set()
     return {cast("str", item) for item in value}
+
+
+def _string_values(value: object | None) -> set[str]:
+    if isinstance(value, str):
+        return {value}
+    return _string_items(value)
 
 
 def _broad_ruff_pattern(pattern: str) -> bool:
@@ -291,6 +333,150 @@ def _validate_ruff_configuration(
         )
 
 
+def _mypy_exclusion_hides_owned_code(pattern: str) -> bool:
+    normalized = pattern.replace("\\", "/").removeprefix("./").lower()
+    return any(scope in normalized for scope in ("src", "tests"))
+
+
+def _validate_mypy_overrides(
+    raw_overrides: object | None,
+    package: Path | None,
+    issues: list[Issue],
+) -> None:
+    if raw_overrides is None:
+        return
+    if not isinstance(raw_overrides, list):
+        issues.append(Issue("error", "mypy-config", "Mypy overrides must be TOML array tables"))
+        return
+    owned_prefixes = {"tests"}
+    if package is not None:
+        owned_prefixes.add(package.name)
+    for raw_override in raw_overrides:
+        override = _object_table(raw_override)
+        if override is None:
+            issues.append(Issue("error", "mypy-config", "Each mypy override must be a table"))
+            continue
+        modules = _string_values(override.get("module"))
+        unsafe_module = not modules or any(
+            re.fullmatch(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*(?:\.\*)?", module) is None
+            or module == "*"
+            or any(module == prefix or module.startswith(f"{prefix}.") for prefix in owned_prefixes)
+            for module in modules
+        )
+        weakens_contract = any(
+            key in override and bool(override[key]) for key in MYPY_OVERRIDE_WEAKENING_FLAGS
+        ) or any(override.get(key) is False for key in MYPY_REQUIRED_FLAGS)
+        if override.get("follow_imports") == "skip":
+            weakens_contract = True
+        if unsafe_module or weakens_contract:
+            issues.append(
+                Issue(
+                    "error",
+                    "mypy-config",
+                    "Mypy overrides must target an external namespace without weakening owned code",
+                )
+            )
+
+
+def _validate_mypy_configuration(
+    root: Path,
+    data: dict[str, object],
+    package: Path | None,
+    dependencies: list[str],
+    issues: list[Issue],
+) -> None:
+    mypy = _object_table(_tool_table(data, "mypy"))
+    if mypy is None:
+        issues.append(Issue("error", "mypy-config", "Missing [tool.mypy] configuration"))
+        return
+    if mypy.get("python_version") != "3.12":
+        issues.append(Issue("error", "mypy-config", "Mypy must target Python 3.12"))
+    files = _string_values(mypy.get("files"))
+    if not {"src", "tests"} <= files:
+        issues.append(Issue("error", "mypy-config", "Mypy must check both src and tests"))
+    missing_flags = sorted(flag for flag in MYPY_REQUIRED_FLAGS if mypy.get(flag) is not True)
+    if missing_flags:
+        issues.append(
+            Issue(
+                "error",
+                "mypy-config",
+                f"Required mypy flags are missing or disabled: {', '.join(missing_flags)}",
+            )
+        )
+    enabled_codes = _string_items(mypy.get("enable_error_code"))
+    missing_codes = sorted(MYPY_REQUIRED_ERROR_CODES - enabled_codes)
+    if missing_codes:
+        issues.append(
+            Issue(
+                "error",
+                "mypy-config",
+                f"Required mypy error codes are missing: {', '.join(missing_codes)}",
+            )
+        )
+    if mypy.get("ignore_missing_imports") is True or mypy.get("ignore_errors") is True:
+        issues.append(Issue("error", "mypy-config", "Global mypy ignores are not allowed"))
+    if mypy.get("follow_imports") == "skip":
+        issues.append(Issue("error", "mypy-config", "Mypy must not skip imported modules"))
+    if _string_values(mypy.get("disable_error_code")):
+        issues.append(Issue("error", "mypy-config", "Mypy error codes must not be disabled"))
+    issues.extend(
+        Issue(
+            "error",
+            "mypy-config",
+            f"Mypy exclusion hides owned code: {pattern}",
+        )
+        for pattern in _string_values(mypy.get("exclude"))
+        if _mypy_exclusion_hides_owned_code(pattern)
+    )
+    _validate_mypy_overrides(mypy.get("overrides"), package, issues)
+
+    mypy_paths = _string_values(mypy.get("mypy_path"))
+    declares_typings = any(path.replace("\\", "/").rstrip("/") == "typings" for path in mypy_paths)
+    typings = root / "typings"
+    if declares_typings and (not typings.is_dir() or not any(typings.rglob("*.pyi"))):
+        issues.append(
+            Issue(
+                "error",
+                "mypy-config",
+                "mypy_path declares typings but no local .pyi stub is versioned there",
+            )
+        )
+
+    normalized_dependencies = {item.replace(" ", "") for item in dependencies}
+    required_dependencies = {"mypy>=2.3.1,<2.4", "types-pyyaml>=6.0.12,<7"}
+    missing_dependencies = sorted(required_dependencies - normalized_dependencies)
+    if missing_dependencies:
+        issues.append(
+            Issue(
+                "error",
+                "mypy-config",
+                f"Mypy development dependencies are missing: {', '.join(missing_dependencies)}",
+            )
+        )
+
+    guide = root / "docs/mypy.md"
+    if guide.is_file():
+        content = guide.read_text(encoding="utf-8", errors="replace")
+        required_topics = (
+            "uv run mypy",
+            "strict",
+            "Any",
+            "type: ignore",
+            "types-*",
+            "override",
+            "https://mypy.readthedocs.io/",
+        )
+        if not all(topic in content for topic in required_topics):
+            issues.append(
+                Issue(
+                    "error",
+                    "mypy-config",
+                    "docs/mypy.md must explain strict usage, Any, ignores, stubs, overrides, "
+                    "and official sources",
+                )
+            )
+
+
 def _dependency_strings(data: dict[str, object]) -> list[str]:
     values: list[str] = []
     project = data.get("project")
@@ -311,7 +497,7 @@ def _dependency_strings(data: dict[str, object]) -> list[str]:
     return values
 
 
-def _load_yaml(path: Path, issues: list[Issue], code: str) -> dict[str, Any] | None:
+def _load_yaml(path: Path, issues: list[Issue], code: str) -> dict[str, object] | None:
     try:
         loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
@@ -320,7 +506,7 @@ def _load_yaml(path: Path, issues: list[Issue], code: str) -> dict[str, Any] | N
     if not isinstance(loaded, dict):
         issues.append(Issue("error", code, f"YAML root must be a mapping: {path.name}"))
         return None
-    return cast("dict[str, Any]", loaded)
+    return cast("dict[str, object]", loaded)
 
 
 def _primary_package(root: Path, issues: list[Issue]) -> Path | None:
@@ -504,6 +690,27 @@ def _validate_workflows(root: Path, profile: Profile, issues: list[Issue]) -> No
                     )
                 )
                 break
+        if filename == "01-code-quality.yml" and not all(
+            token in source
+            for token in (
+                "branch-policy",
+                "BASE_REF",
+                "HEAD_REF",
+                "main",
+                "dev",
+                "type-check",
+                "--no-incremental",
+                "3.12",
+                "3.13",
+            )
+        ):
+            issues.append(
+                Issue(
+                    "error",
+                    "workflow-contract",
+                    "Quality workflow must enforce dev-first PRs and run mypy for Python 3.12/3.13",
+                )
+            )
         if filename == "03-databricks.yml" and "databricks bundle validate" not in source:
             issues.append(
                 Issue(
@@ -698,9 +905,9 @@ def _notebook_source(path: Path, issues: list[Issue]) -> str | None:
     return "\n".join(sources)
 
 
-def _walk_mappings(value: object) -> Iterable[dict[str, Any]]:
+def _walk_mappings(value: object) -> Iterable[dict[str, object]]:
     if isinstance(value, dict):
-        mapping = cast("dict[str, Any]", value)
+        mapping = cast("dict[str, object]", value)
         yield mapping
         for child in mapping.values():
             yield from _walk_mappings(child)
@@ -846,6 +1053,7 @@ def validate_project(root: Path, requested_profile: str = "auto") -> tuple[Profi
         ".gitignore",
         "docs/architecture.md",
         "docs/configuration.md",
+        "docs/mypy.md",
         "docs/testing.md",
     ):
         _require(root, relative, issues)
@@ -867,6 +1075,7 @@ def validate_project(root: Path, requested_profile: str = "auto") -> tuple[Profi
 
     dependencies = _dependency_strings(data)
     _validate_ruff_configuration(data, profile, dependencies, issues)
+    _validate_mypy_configuration(root, data, package, dependencies, issues)
     _validate_workflows(root, profile, issues)
     _validate_configuration(root, package, profile, dependencies, issues)
     _validate_python_layout(root, issues)
