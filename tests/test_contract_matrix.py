@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from scripts.validate_project import validate_project
-from tests.contract_cases import ContractCase
 from tests.project_factory import build_valid_project
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tests.contract_cases import ContractCase
 
 
 @pytest.mark.contract

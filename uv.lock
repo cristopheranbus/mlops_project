@@ -239,7 +239,7 @@ dev = [
     { name = "pytest", specifier = ">=9.0.3,<10" },
     { name = "pytest-cov", specifier = ">=6.2,<8" },
     { name = "pytest-timeout", specifier = ">=2.4,<3" },
-    { name = "ruff", specifier = ">=0.12,<0.17" },
+    { name = "ruff", specifier = ">=0.16.5,<0.17" },
     { name = "types-pyyaml", specifier = ">=6.0.12,<7" },
 ]
 mutation = [{ name = "mutmut", specifier = ">=3.3,<4" }]

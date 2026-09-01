@@ -18,8 +18,9 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 2. [Configuración tipada](configuration.md)
 3. [Notebooks y MLflow](notebooks-mlflow.md)
 4. [Seguridad de MLflow](mlflow-security.md)
-5. [Perfiles](profiles.md)
-6. [Estrategia de pruebas](testing-strategy.md)
+5. [Ruff estricto](ruff.md)
+6. [Perfiles](profiles.md)
+7. [Estrategia de pruebas](testing-strategy.md)
 
 ### Trabajo con Databricks
 
@@ -47,13 +48,14 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 
 1. [Diseño interno](design.md)
 2. [Validación](validation.md)
-3. [Evaluación de activación](evaluation.md)
-4. [Gobernanza y revisión](governance.md)
-5. [Guía de contribución](../CONTRIBUTING.md)
-6. [Política de seguridad](../SECURITY.md)
-7. [Migración desde v0.1.0](migration-v0.1.md)
-8. [Estrategia de pruebas](testing-strategy.md)
-9. [Workflows y operación](ci-workflows.md)
+3. [Ruff estricto](ruff.md)
+4. [Evaluación de activación](evaluation.md)
+5. [Gobernanza y revisión](governance.md)
+6. [Guía de contribución](../CONTRIBUTING.md)
+7. [Política de seguridad](../SECURITY.md)
+8. [Migración desde v0.1.0](migration-v0.1.md)
+9. [Estrategia de pruebas](testing-strategy.md)
+10. [Workflows y operación](ci-workflows.md)
 
 ### Tengo un fallo
 
