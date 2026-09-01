@@ -85,3 +85,21 @@ def test_testing_and_ci_guides_cover_operational_interfaces() -> None:
             "contents: read",
         )
     )
+
+
+def test_mlflow_security_guide_covers_boundary_and_official_sources() -> None:
+    security = (DOCS / "mlflow-security.md").read_text(encoding="utf-8")
+
+    assert all(
+        term in security
+        for term in (
+            "mlflow-security",
+            "AI Gateway",
+            "api_base",
+            "SSRF",
+            "allowlist",
+            "egress",
+            "GHSA-h7x2-h6g9-p789",
+            "https://mlflow.org/docs/latest/self-hosting/security/",
+        )
+    )

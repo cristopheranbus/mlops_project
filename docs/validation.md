@@ -98,10 +98,13 @@ Además de las comunes:
 
 - alguna dependencia declarada debe comenzar por `mlflow`;
 - debe existir `docs/mlflow.md`;
+- debe existir `docs/mlflow-security.md`;
 - debe existir `tests/integration`.
 - debe existir `tracking/mlflow.py` con el único `start_run` permitido;
 - el wrapper debe activar `autolog` antes de entregar control y registrar la configuración;
 - los workflows deben usar `start_experiment_run`.
+- no puede habilitarse MLflow AI Gateway, configurar `auth_config.api_base`, crear gateway
+  secrets ni consumir rutas de proxy desde archivos productivos.
 
 La búsqueda de dependencias cubre `project.dependencies`, grupos opcionales y
 `dependency-groups`.
@@ -166,6 +169,7 @@ escáner de secretos apropiado para tu organización.
 | `notebook-format` | Source marker, nbformat, outputs o imports inválidos | Limpiar el notebook y delegar al workflow |
 | `databricks-task` | El bundle no usa un notebook productivo existente | Corregir `notebook_task.notebook_path` |
 | `mlflow-run` | Wrapper incompleto o llamada directa a `start_run` | Centralizar el run y ordenar autolog/configuración |
+| `mlflow-security` | Código o configuración productiva habilita MLflow AI Gateway | Retirar la superficie y seguir la guía de seguridad; no ocultar ni renombrar la configuración |
 | `workflow-contract` | Falta un workflow, tiene nombre/permisos inseguros, acciones flotantes o carece de la etapa esperada | Restaurar el workflow numerado y sus límites operativos |
 | `tests` | No existe ningún `test_*.py` | Agregar pruebas que validen comportamiento |
 | `mlflow` | El perfil necesita MLflow pero no está declarado | Agregar dependencia restringida y actualizar lock |
@@ -219,6 +223,9 @@ El script no valida:
 - permisos, identidades o secretos del workspace;
 - disponibilidad de endpoints;
 - ausencia total de secretos.
+- seguridad de una instalación externa de MLflow ni la corrección de su código upstream;
+- resolución DNS, redirects o egress reales; `mlflow-security` aplica una prohibición
+  estructural preventiva, no una prueba dinámica de red.
 
 Estas comprobaciones se cubren mediante gates locales, pruebas del proyecto, scanners y
 validaciones externas autorizadas.

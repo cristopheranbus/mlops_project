@@ -169,6 +169,54 @@ def test_missing_mlflow_adapter_is_reported(tmp_path: Path) -> None:
     assert "mlflow-run" in _error_codes(root)
 
 
+def test_missing_mlflow_security_guide_is_reported(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    (root / "docs/mlflow-security.md").unlink()
+    assert "missing" in _error_codes(root)
+
+
+def test_mlflow_gateway_api_base_is_rejected(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    _write(
+        root / "configs/gateway.yaml",
+        "mlflow:\n  gateway:\n    auth_config:\n      api_base: http://127.0.0.1:8080\n",
+    )
+    assert "mlflow-security" in _error_codes(root)
+
+
+def test_gateway_auth_config_is_rejected_without_mlflow_label(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    _write(
+        root / "configs/provider.yaml",
+        "auth_config:\n  api_base: https://internal.example\n",
+    )
+    assert "mlflow-security" in _error_codes(root)
+
+
+def test_mlflow_gateway_secret_api_is_rejected(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    _write(
+        root / "src/demo_project/tracking/gateway.py",
+        'action = "CreateGatewaySecret"\nroute = "/api/2.0/mlflow/gateway/secrets"\n',
+    )
+    assert "mlflow-security" in _error_codes(root)
+
+
+def test_mlflow_gateway_proxy_route_is_rejected(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "databricks-mlops")
+    _write(
+        root / "resources/gateway.yml",
+        "proxy_route: /gateway/proxy/chat/completions\n",
+    )
+    assert "mlflow-security" in _error_codes(root)
+
+
+def test_unrelated_api_base_is_not_rejected(tmp_path: Path) -> None:
+    root = _valid_project(tmp_path, "mlflow-local")
+    _write(root / "configs/external_api.yaml", "service:\n  api_base: https://example.com\n")
+    assert "mlflow-security" not in _error_codes(root)
+
+
 def test_autolog_after_yield_is_reported(tmp_path: Path) -> None:
     root = _valid_project(tmp_path, "mlflow-local")
     _write(

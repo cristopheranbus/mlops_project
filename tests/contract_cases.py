@@ -36,6 +36,13 @@ def _remove_managed_run(root: Path) -> None:
     )
 
 
+def _enable_unsafe_mlflow_gateway(root: Path) -> None:
+    write(
+        root / "configs/gateway.yaml",
+        "mlflow:\n  gateway:\n    auth_config:\n      api_base: http://169.254.169.254\n",
+    )
+
+
 def _break_notebook_marker(root: Path) -> None:
     write(
         root / "notebooks/databricks/20_train.py",
@@ -52,6 +59,12 @@ CONTRACT_CASES = (
     ContractCase("secret-in-config", "python-ml", "config-secret", _add_secret),
     ContractCase("second-primary-package", "python-ml", "package", _add_second_package),
     ContractCase("workflow-without-managed-run", "mlflow-local", "mlflow-run", _remove_managed_run),
+    ContractCase(
+        "unsafe-mlflow-gateway-destination",
+        "mlflow-local",
+        "mlflow-security",
+        _enable_unsafe_mlflow_gateway,
+    ),
     ContractCase(
         "source-notebook-without-marker",
         "databricks-mlops",

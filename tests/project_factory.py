@@ -81,6 +81,17 @@ source = ["src"]
     write(root / "configs/local.yaml", "config_version: 1\nproject:\n  environment: local\n")
     if profile != "python-ml":
         write(root / "docs/mlflow.md")
+        write(
+            root / "docs/mlflow-security.md",
+            """# Seguridad de MLflow
+
+Este proyecto usa MLflow Tracking y no habilita MLflow AI Gateway. La creación de
+gateway secrets, `api_base` y las rutas de proxy están fuera del contrato generado.
+
+Antes de incorporar AI Gateway, revisa GHSA-h7x2-h6g9-p789, valida una versión corregida,
+aplica autorización administrativa, una allowlist HTTPS y controles de egress.
+""",
+        )
         write(root / "tests/integration/test_mlflow.py")
         write(
             root / "src/demo_project/tracking/mlflow.py",

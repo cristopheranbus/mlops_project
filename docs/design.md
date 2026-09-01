@@ -73,6 +73,12 @@ contra suites que solo elevan el porcentaje sin validar comportamiento.
 Se carga para `mlflow-local` y `databricks-mlops`. Define tracking, artefactos, firma,
 evaluación independiente, aliases y aislamiento de pruebas.
 
+### `skills/create-mlops-project/references/mlflow-security.md`
+
+Se carga junto con la referencia de MLflow. Mantiene AI Gateway fuera del scaffold,
+exige una guía generada de seguridad y define la evidencia necesaria antes de una futura
+habilitación revisada.
+
 ### `skills/create-mlops-project/references/databricks.md`
 
 Solo se necesita para `databricks-mlops`. Define bundles, targets, Unity Catalog, Jobs,

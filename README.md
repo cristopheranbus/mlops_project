@@ -54,6 +54,8 @@ repositorio nuevo con:
 - workflows separados para calidad, seguridad, Databricks y monitoreo productivo;
 - documentación técnica y operativa adecuada al perfil;
 - manejo de integraciones externas sin versionar credenciales;
+- un límite preventivo que mantiene MLflow AI Gateway deshabilitado y detecta su
+  configuración con `mlflow-security`;
 - un camino local que no depende de servicios productivos.
 
 La skill está pensada para **crear proyectos nuevos**. No debe emplearse como migrador
@@ -265,6 +267,7 @@ alcance completo y cada código de error están documentados en
 | [Tutorial inicial](docs/beginner-tutorial.md) | Desde instalar herramientas hasta el primer PR | Principiantes |
 | [Configuración](docs/configuration.md) | Perfiles YAML, Pydantic, overrides, secretos y hash | Usuarios y ML engineers |
 | [Notebooks y MLflow](docs/notebooks-mlflow.md) | Notebook-first, workflows, autolog y trazabilidad | ML engineers y Databricks |
+| [Seguridad de MLflow](docs/mlflow-security.md) | Límite de AI Gateway, SSRF, despliegue y respuesta | Usuarios, seguridad y operadores |
 | [Estrategia de pruebas](docs/testing-strategy.md) | Hook dinámico, capas, markers, propiedades y diagnóstico | Contribuidores y mantenedores |
 | [Workflows](docs/ci-workflows.md) | Calidad, seguridad, Databricks y monitoreo | ML engineers y operadores |
 | [Migración v0.1.0](docs/migration-v0.1.md) | Adopción del nuevo contrato | Mantenedores |

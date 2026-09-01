@@ -21,6 +21,8 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Numbered workflows for quality, repository security, generated Databricks contracts,
   and production monitoring contracts.
 - Extensive testing strategy and CI operations guides.
+- Preventive `mlflow-security` contract that blocks MLflow AI Gateway configuration in
+  generated projects, with regression tests and an operational security guide.
 
 ### Changed
 
@@ -29,6 +31,8 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Documentation navigation now provides dedicated paths for beginners, ML engineers,
   Databricks users, contributors, and maintainers.
 - The default generated-project quality floor is now 90% branch coverage.
+- The development test runner now requires pytest 9.0.3 or newer to avoid
+  `PYSEC-2026-1845`.
 
 ## [0.1.0] - 2026-08-26
 

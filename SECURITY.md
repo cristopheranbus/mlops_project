@@ -82,6 +82,12 @@ historial. La rotación es la acción prioritaria.
 - controlar acceso al tracking server y artifact store;
 - usar versiones exactas para decisiones de promoción;
 - conservar evidencia auditable sin incluir datos sensibles innecesarios.
+- mantener AI Gateway deshabilitado en proyectos generados; el validador rechaza gateway
+  secrets, `auth_config.api_base` y rutas proxy con `mlflow-security`;
+- no considerar una validación local de URL como corrección suficiente de SSRF: debe
+  protegerse el destino efectivo, DNS, redirects, permisos y egress;
+- revisar [la guía específica](docs/mlflow-security.md) y el advisory
+  [GHSA-h7x2-h6g9-p789](https://github.com/advisories/GHSA-h7x2-h6g9-p789).
 
 ### Databricks
 

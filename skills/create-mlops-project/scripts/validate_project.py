@@ -39,6 +39,14 @@ DATABRICKS_WORKFLOW_CONTRACT = {
     "03-databricks.yml": "03 - Databricks bundle validation and deployment",
     "04-production-monitoring.yml": "04 - Production model monitoring",
 }
+MLFLOW_SECURITY_SUFFIXES = {".json", ".py", ".toml", ".yaml", ".yml"}
+MLFLOW_GATEWAY_PATTERNS = (
+    re.compile(r"\bCreateGatewaySecret\b", re.IGNORECASE),
+    re.compile(r"\bcreate_gateway_secret\b", re.IGNORECASE),
+    re.compile(r"/api/2\.0/mlflow/gateway(?:/|\b)", re.IGNORECASE),
+    re.compile(r"/gateway/proxy(?:/|\b)", re.IGNORECASE),
+    re.compile(r"\bmlflow(?:\.[a-z_][a-z0-9_]*)*\.gateway\b", re.IGNORECASE),
+)
 
 
 @dataclass(frozen=True)
@@ -383,6 +391,47 @@ def _validate_mlflow(root: Path, package: Path | None, issues: list[Issue]) -> N
         )
 
 
+def _validate_mlflow_security(root: Path, issues: list[Issue]) -> None:
+    """Reject AI Gateway activation under the generated-project security boundary."""
+    scan_roots = (
+        root / "src",
+        root / "configs",
+        root / "resources",
+        root / "notebooks",
+    )
+    candidates = [root / "pyproject.toml", root / "databricks.yml"]
+    for scan_root in scan_roots:
+        if scan_root.is_dir():
+            candidates.extend(path for path in scan_root.rglob("*") if path.is_file())
+
+    for path in sorted(set(candidates)):
+        if not path.is_file() or path.suffix.lower() not in MLFLOW_SECURITY_SUFFIXES:
+            continue
+        try:
+            source = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        has_api_base = re.search(r"\bapi_base\b", source, re.IGNORECASE) is not None
+        gateway_api_base = has_api_base and (
+            re.search(r"\bauth_config\b", source, re.IGNORECASE) is not None
+            or "gateway" in str(path.relative_to(root)).lower()
+            or (
+                re.search(r"\bmlflow\b", source, re.IGNORECASE) is not None
+                and re.search(r"\bgateway\b", source, re.IGNORECASE) is not None
+            )
+        )
+        if gateway_api_base or any(pattern.search(source) for pattern in MLFLOW_GATEWAY_PATTERNS):
+            issues.append(
+                Issue(
+                    "error",
+                    "mlflow-security",
+                    "MLflow AI Gateway configuration is not allowed by the generated-project "
+                    "contract while api_base destination validation and creation authorization "
+                    f"cannot be guaranteed: {path.relative_to(root)}",
+                )
+            )
+
+
 def _notebook_source(path: Path, issues: list[Issue]) -> str | None:
     if path.suffix == ".py":
         try:
@@ -606,9 +655,10 @@ def validate_project(root: Path, requested_profile: str = "auto") -> tuple[Profi
     if profile in {"mlflow-local", "databricks-mlops"}:
         if not any(item.startswith("mlflow") for item in dependencies):
             issues.append(Issue("error", "mlflow", "MLflow profile requires an mlflow dependency"))
-        for relative in ("docs/mlflow.md", "tests/integration"):
+        for relative in ("docs/mlflow.md", "docs/mlflow-security.md", "tests/integration"):
             _require(root, relative, issues)
         _validate_mlflow(root, package, issues)
+        _validate_mlflow_security(root, issues)
     if profile == "databricks-mlops":
         for relative in (
             "databricks.yml",

@@ -21,3 +21,6 @@
   promotion.
 - Tests must use isolated temporary stores and must not depend on a developer's MLflow
   state.
+- Apply the separate [MLflow security boundary](mlflow-security.md). Generated projects
+  use Tracking but do not enable AI Gateway, gateway secrets, proxy routes, or
+  `auth_config.api_base`.

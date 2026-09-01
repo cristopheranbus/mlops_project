@@ -17,8 +17,9 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 1. [Contrato del proyecto generado](project-contract.md)
 2. [Configuración tipada](configuration.md)
 3. [Notebooks y MLflow](notebooks-mlflow.md)
-4. [Perfiles](profiles.md)
-5. [Estrategia de pruebas](testing-strategy.md)
+4. [Seguridad de MLflow](mlflow-security.md)
+5. [Perfiles](profiles.md)
+6. [Estrategia de pruebas](testing-strategy.md)
 
 ### Trabajo con Databricks
 
@@ -70,6 +71,7 @@ la generación viven bajo
 - [Calidad](../skills/create-mlops-project/references/quality.md)
 - [Pruebas](../skills/create-mlops-project/references/testing.md)
 - [MLflow](../skills/create-mlops-project/references/mlflow.md)
+- [Seguridad de MLflow](../skills/create-mlops-project/references/mlflow-security.md)
 - [Databricks](../skills/create-mlops-project/references/databricks.md)
 
 Cuando una guía y una referencia discrepen, corrige ambas. El

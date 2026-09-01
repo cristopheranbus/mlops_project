@@ -105,3 +105,11 @@ promoción siguen siendo workflows separados.
 No llames `start_run` desde un notebook o workflow: rompe el punto único de configuración,
 puede dejar autolog fuera del run y dificulta garantizar tags y artefactos. El validador
 lo rechaza con `mlflow-run`.
+
+## Límite de seguridad de AI Gateway
+
+MLflow Tracking y MLflow AI Gateway son capacidades distintas. Los proyectos generados
+usan Tracking, pero no habilitan gateway secrets, `auth_config.api_base` ni rutas proxy.
+El validador reporta `mlflow-security` si detecta esa superficie en código o configuración
+productiva. Consulta [Seguridad de MLflow y límite de AI Gateway](mlflow-security.md) para
+entender el riesgo, la mitigación y los requisitos de una futura revisión.
