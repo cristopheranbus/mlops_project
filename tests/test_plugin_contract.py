@@ -163,3 +163,6 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
     assert conftest.index("sys.path.insert") < conftest.index(
         "from scripts.validate_project import PROFILES"
     )
+    assert conftest.index("sys.path.insert") < conftest.index(
+        "from tests.contract_cases import CONTRACT_CASES"
+    )
