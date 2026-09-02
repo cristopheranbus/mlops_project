@@ -12,8 +12,16 @@ if os.environ.get("MUTANT_UNDER_TEST"):
     mutant_skill_root = Path.cwd() / "skills" / "create-mlops-project"
     sys.path.insert(0, str(mutant_skill_root))
 
-from scripts.validate_project import PROFILES
+from scripts import validate_project as validator_module
 from tests.contract_cases import CONTRACT_CASES
+
+PROFILES = validator_module.PROFILES
+
+if os.environ.get("MUTANT_UNDER_TEST"):
+    loaded_validator = Path(validator_module.__file__).resolve()
+    assert loaded_validator.is_relative_to(Path.cwd().resolve()), (
+        f"Mutmut loaded validator outside its workspace: {loaded_validator}"
+    )
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

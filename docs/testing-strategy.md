@@ -212,6 +212,10 @@ precedencia las pruebas pueden pasar contra el código original y Mutmut termina
 case for any mutant», un falso negativo especialmente peligroso. Fuera de Mutmut, la variable
 no existe y el bootstrap no modifica `sys.path`.
 
+El mismo bootstrap verifica `validator_module.__file__` y falla inmediatamente si el módulo
+queda fuera del workspace actual. Esta guardia hace observable una instalación editable mal
+resuelta antes de aceptar estadísticas vacías o resultados contra el código equivocado.
+
 Estos nombres corresponden a la
 [configuración oficial de Mutmut](https://github.com/boxed/mutmut#configuration).
 

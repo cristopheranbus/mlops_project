@@ -161,8 +161,9 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
     assert 'os.environ.get("MUTANT_UNDER_TEST")' in conftest
     assert 'Path.cwd() / "skills" / "create-mlops-project"' in conftest
     assert conftest.index("sys.path.insert") < conftest.index(
-        "from scripts.validate_project import PROFILES"
+        "from scripts import validate_project as validator_module"
     )
     assert conftest.index("sys.path.insert") < conftest.index(
         "from tests.contract_cases import CONTRACT_CASES"
     )
+    assert "loaded_validator.is_relative_to(Path.cwd().resolve())" in conftest
