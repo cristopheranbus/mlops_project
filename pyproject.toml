@@ -96,7 +96,7 @@ show_missing = true
 skip_covered = true
 
 [tool.mutmut]
-debug = true
+debug = false
 source_paths = ["src/scripts/validate_project.py"]
 also_copy = ["src/scripts/__init__.py"]
 pytest_add_cli_args_test_selection = [

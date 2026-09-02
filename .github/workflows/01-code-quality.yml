@@ -159,8 +159,21 @@ jobs:
           cp skills/create-mlops-project/scripts/__init__.py src/scripts/__init__.py
           cp skills/create-mlops-project/scripts/validate_project.py src/scripts/validate_project.py
       - run: uv run --group mutation mutmut run
-      - if: ${{ always() }}
-        run: uv run --group mutation mutmut results
+      - name: Export auditable mutation statistics
+        if: ${{ always() }}
+        run: |
+          uv run --group mutation mutmut export-cicd-stats
+          test -f mutants/mutmut-cicd-stats.json
+          echo "## Mutation analysis" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat mutants/mutmut-cicd-stats.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: mutation-analysis
+          path: mutants/mutmut-cicd-stats.json
+          if-no-files-found: error
 
   quality:
     if: ${{ always() }}

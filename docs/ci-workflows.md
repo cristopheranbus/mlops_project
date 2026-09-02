@@ -56,6 +56,9 @@ La selección se limita a las pruebas que ejercitan el validador para que el wor
 análisis, el workflow copia el validador a un staging efímero `src/scripts/`: Mutmut reconoce
 ese layout, antepone `mutants/src` y mantiene alineadas la clave del mutante y la identidad
 `scripts.validate_project` usada por las pruebas. El archivo canónico nunca se duplica en Git.
+Al terminar, el job publica `mutmut-cicd-stats.json` como artefacto `mutation-analysis` y lo
+incluye en el resumen de Actions; así, los conteos y la futura puntuación pueden auditarse sin
+depender del color general ni de logs verbosos.
 
 GitHub documenta las matrices como una forma de crear variaciones de un job para varias
 versiones y sistemas operativos: [matrix strategies](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).

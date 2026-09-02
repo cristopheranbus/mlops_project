@@ -215,8 +215,9 @@ resultado.
 El mismo bootstrap verifica `validator_module.__file__` y falla inmediatamente si el módulo
 queda fuera del workspace actual. Esta guardia hace observable una instalación editable mal
 resuelta antes de aceptar estadísticas vacías o resultados contra el código equivocado.
-`debug = true` conserva en GitHub Actions el comando de pytest y el error original; el mayor
-volumen de log se acepta porque el job sólo se ejecuta semanalmente o bajo petición manual.
+`debug = false` evita que cada proceso mutante publique la salida completa de pytest. Para
+diagnosticar una integración rota puede activarse temporalmente en una rama, pero no debe
+permanecer habilitado porque una corrida completa puede producir decenas de MB de logs.
 
 Como `source_paths` apunta a un archivo, `also_copy` incorpora `src/scripts/__init__.py` para
 preservar la identidad de paquete regular dentro de `mutants/src`.
@@ -233,6 +234,7 @@ cp skills/create-mlops-project/scripts/__init__.py src/scripts/__init__.py
 cp skills/create-mlops-project/scripts/validate_project.py src/scripts/validate_project.py
 uv run --group mutation mutmut run
 uv run --group mutation mutmut results
+uv run --group mutation mutmut export-cicd-stats
 ```
 
 En PowerShell, la preparación equivalente es:
@@ -246,6 +248,11 @@ Copy-Item skills/create-mlops-project/scripts/validate_project.py src/scripts/va
 
 `/src/` está ignorado en este repositorio porque sólo es staging local de mutation testing; el
 código fuente canónico continúa exclusivamente bajo `skills/create-mlops-project/scripts/`.
+
+En GitHub Actions, `export-cicd-stats` genera `mutants/mutmut-cicd-stats.json` con los conteos
+de `killed`, `survived`, `no_tests`, `timeout`, `suspicious`, `skipped` y `segfault`. El workflow
+añade ese JSON al resumen de la ejecución y lo publica como artefacto `mutation-analysis`.
+La ausencia del archivo es un fallo operativo, incluso si el paso anterior alcanzó a terminar.
 
 Mutmut no ofrece ejecución nativa en Windows. Usa WSL o Linux para estos comandos; los
 demás gates continúan siendo compatibles con PowerShell. El workflow programado se

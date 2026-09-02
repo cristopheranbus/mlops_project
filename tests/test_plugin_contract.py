@@ -136,7 +136,7 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
         pyproject = tomllib.load(stream)
 
     config = pyproject["tool"]["mutmut"]
-    assert config["debug"] is True
+    assert config["debug"] is False
     assert config["source_paths"] == ["src/scripts/validate_project.py"]
     assert config["also_copy"] == ["src/scripts/__init__.py"]
     assert config["pytest_add_cli_args_test_selection"] == [
@@ -160,6 +160,9 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
     assert "continue-on-error" not in mutation_job
     assert "mkdir -p src/scripts" in mutation_job
     assert "validate_project.py src/scripts/validate_project.py" in mutation_job
+    assert "mutmut export-cicd-stats" in mutation_job
+    assert "mutants/mutmut-cicd-stats.json" in mutation_job
+    assert "name: mutation-analysis" in mutation_job
 
     conftest = (ROOT / "tests" / "conftest.py").read_text(encoding="utf-8")
     assert 'os.environ.get("MUTANT_UNDER_TEST")' in conftest
