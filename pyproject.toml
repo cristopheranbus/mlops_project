@@ -103,4 +103,9 @@ pytest_add_cli_args_test_selection = [
     "tests/test_validate_project.py",
     "tests/test_validator_edges.py",
 ]
-pytest_add_cli_args = ["--no-cov", "-q"]
+pytest_add_cli_args = [
+    "--no-cov",
+    "-q",
+    "-o",
+    "pythonpath=skills/create-mlops-project",
+]

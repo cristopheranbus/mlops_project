@@ -201,6 +201,11 @@ excluye deliberadamente pruebas documentales y de empaquetado que dependen de ar
 Mutmut no copia a su workspace `mutants/`. `pytest_add_cli_args` desactiva coverage para
 evitar medir cada mutante con una instrumentación redundante; no se usa el antiguo campo
 `runner`, porque Mutmut 3 integra pytest y recibe sus argumentos mediante esta interfaz.
+El override localizado `pythonpath=skills/create-mlops-project` hace que pytest importe
+`scripts` desde la copia mutada antes que desde la instalación editable del checkout. Sin
+esta precedencia las pruebas pueden pasar contra el código original y Mutmut termina con
+«no test case for any mutant», un falso negativo especialmente peligroso.
+
 Estos nombres corresponden a la
 [configuración oficial de Mutmut](https://github.com/boxed/mutmut#configuration).
 

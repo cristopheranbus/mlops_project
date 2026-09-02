@@ -52,7 +52,9 @@ señal informativa y no forma parte del agregador hasta establecer una baseline 
 mutantes equivalentes. El job no oculta fallos operativos: si Mutmut no puede recolectar
 estadísticas o ejecutar la suite seleccionada, la ejecución programada o manual queda roja.
 La selección se limita a las pruebas que ejercitan el validador para que el workspace aislado
-`mutants/` no intente resolver documentación u otros archivos ajenos a la mutación.
+`mutants/` no intente resolver documentación u otros archivos ajenos a la mutación. Durante
+esa ejecución, pytest antepone el código copiado en `mutants/` al paquete instalado en modo
+editable; esto garantiza que las pruebas observan cada mutante y no el checkout original.
 
 GitHub documenta las matrices como una forma de crear variaciones de un job para varias
 versiones y sistemas operativos: [matrix strategies](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).
