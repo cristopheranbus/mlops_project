@@ -73,7 +73,15 @@ def test_testing_and_ci_guides_cover_operational_interfaces() -> None:
 
     assert all(
         term in testing
-        for term in ("pytest_generate_tests", "--run-external", "Hypothesis", "branch coverage")
+        for term in (
+            "pytest_generate_tests",
+            "--run-external",
+            "Hypothesis",
+            "branch coverage",
+            "70,20%",
+            "mutmut-cicd-stats.json",
+            "Guardas contra falsos verdes",
+        )
     )
     assert all(
         term in workflows
@@ -83,6 +91,61 @@ def test_testing_and_ci_guides_cover_operational_interfaces() -> None:
             "03 - Databricks",
             "04 - Production model monitoring",
             "contents: read",
+            "1.689",
+            "Controles de seguridad hospedados",
+        )
+    )
+
+
+def test_governance_distinguishes_versioned_and_hosted_security_controls() -> None:
+    governance = (DOCS / "governance.md").read_text(encoding="utf-8")
+
+    assert all(
+        term in governance
+        for term in (
+            "Controles de seguridad hospedados",
+            "Dependabot alerts",
+            "Dependabot security updates",
+            "secret scanning",
+            "push protection",
+            "vulnerability-alerts",
+            "automated-security-fixes",
+            "No añadas un workflow de auto-approve o auto-merge",
+        )
+    )
+
+
+def test_skill_references_prevent_mutation_false_greens_and_remote_overreach() -> None:
+    skill = (ROOT / "skills/create-mlops-project/SKILL.md").read_text(encoding="utf-8")
+    normalized_skill = " ".join(skill.split())
+    testing = (ROOT / "skills/create-mlops-project/references/testing.md").read_text(
+        encoding="utf-8"
+    )
+    quality = (ROOT / "skills/create-mlops-project/references/quality.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "without structured statistics as failed" in normalized_skill
+    assert (
+        "change GitHub-hosted security settings unless the user separately asks" in normalized_skill
+    )
+    assert all(
+        term in testing
+        for term in (
+            "source_paths",
+            "pytest_add_cli_args_test_selection",
+            "continue-on-error",
+            "mutmut-cicd-stats.json",
+            "current mutant workspace",
+        )
+    )
+    assert all(
+        term in quality
+        for term in (
+            "target-branch: dev",
+            "Dependabot alerts",
+            "secret scanning",
+            "explicitly requests",
         )
     )
 

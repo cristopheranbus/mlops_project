@@ -297,6 +297,33 @@ Primero determina si hay una regresión de rendimiento. Si la prueba toca filesy
 variación pertenece al sistema operativo, usa un límite explícito o `deadline=None` sólo
 en esa propiedad. El timeout global de pytest debe permanecer activo.
 
+## Mutmut aparece verde pero no informa mutantes
+
+Trátalo como un fallo operativo, no como una puntuación perfecta. Comprueba, en este orden:
+
+1. que existe `mutants/mutmut-cicd-stats.json` y contiene `killed` y `survived`;
+2. que `source_paths` usa el staging convencional `src/scripts/validate_project.py`;
+3. que `also_copy` incluye `src/scripts/__init__.py`;
+4. que las pruebas cargan `scripts.validate_project` desde el workspace del mutante;
+5. que el job no contiene `continue-on-error`;
+6. que no reaparecieron las opciones obsoletas `paths_to_mutate`, `tests_dir` o `runner`.
+
+Una selección de pruebas vacía, un import desde el checkout original o la ausencia del JSON
+debe dejar la ejecución roja. Sigue la sección de
+[guardas contra falsos verdes](testing-strategy.md#guardas-contra-falsos-verdes).
+
+## Dependabot no crea alertas o actualizaciones de seguridad
+
+La existencia de `.github/dependabot.yml` sólo configura cómo Dependabot propone cambios;
+no demuestra que las funciones hospedadas estén habilitadas. Revisa Dependabot alerts y
+Dependabot security updates en **Settings → Security → Code security and analysis** o usa
+las comprobaciones de [controles de seguridad hospedados](governance.md#controles-de-seguridad-hospedados).
+
+Si las alertas están activas pero no aparece un PR, comprueba primero si el advisory afecta
+la versión resuelta, si existe una corrección disponible, si ya hay un PR o agrupación y si
+la rama objetivo es `dev`. No abras o fusiones una actualización manual sólo para hacer
+desaparecer una alerta sin revisar compatibilidad y CI.
+
 ## Error `mlflow`
 
 El perfil requiere una dependencia cuyo nombre comience por `mlflow`. Agrégala con un

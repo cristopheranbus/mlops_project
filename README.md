@@ -48,6 +48,7 @@ repositorio nuevo con:
 - pruebas unitarias, de contrato e integración cuando corresponda;
 - matrices dinámicas con `pytest_generate_tests`, property-based testing, timeouts y
   90% de branch coverage;
+- mutation testing programado con resultados auditables y fallos operativos bloqueantes;
 - Ruff, mypy, pytest, cobertura y build como puertas de calidad;
 - dependencias bloqueadas con `uv`;
 - CI en GitHub Actions;
@@ -269,7 +270,7 @@ alcance completo y cada código de error están documentados en
 | [Notebooks y MLflow](docs/notebooks-mlflow.md) | Notebook-first, workflows, autolog y trazabilidad | ML engineers y Databricks |
 | [Seguridad de MLflow](docs/mlflow-security.md) | Límite de AI Gateway, SSRF, despliegue y respuesta | Usuarios, seguridad y operadores |
 | [Ruff estricto](docs/ruff.md) | Reglas curadas, excepciones, diagnóstico y migración | Principiantes y contribuidores |
-| [Estrategia de pruebas](docs/testing-strategy.md) | Hook dinámico, capas, markers, propiedades y diagnóstico | Contribuidores y mantenedores |
+| [Estrategia de pruebas](docs/testing-strategy.md) | Hook dinámico, capas, Mutmut, baseline y diagnóstico | Contribuidores y mantenedores |
 | [mypy estricto](docs/mypy.md) | Tipado estático, códigos opt-in, stubs, adapters y migración | Principiantes, ML engineers y mantenedores |
 | [Workflows](docs/ci-workflows.md) | Calidad, seguridad, Databricks y monitoreo | ML engineers y operadores |
 | [Migración v0.1.0](docs/migration-v0.1.md) | Adopción del nuevo contrato | Mantenedores |
@@ -280,7 +281,7 @@ alcance completo y cada código de error están documentados en
 | [Evaluación](docs/evaluation.md) | Casos de activación explícita, implícita y negativa | Mantenedores |
 | [Ejemplos](docs/examples.md) | Solicitudes completas para casos frecuentes | Usuarios |
 | [Solución de problemas](docs/troubleshooting.md) | Fallos comunes y diagnóstico | Todos |
-| [Gobernanza](docs/governance.md) | Flujo `feature → dev → main`, protecciones y notificaciones | Contribuidores y mantenedores |
+| [Gobernanza](docs/governance.md) | Ramas, revisión, Dependabot y controles hospedados | Contribuidores y mantenedores |
 | [Contribución](CONTRIBUTING.md) | Desarrollo, pruebas y cambios de reglas | Contribuidores |
 | [Seguridad](SECURITY.md) | Credenciales, reportes y respuesta ante filtraciones | Todos |
 
@@ -305,7 +306,20 @@ uv build
 La configuración actual exige al menos 90% de branch coverage. La suite también comprueba que
 los enlaces Markdown locales resuelvan y que el índice enumere todas las guías. GitHub
 Actions repite lint, formato, tipado, una matriz Linux/Windows para Python 3.12/3.13,
-package smoke tests y controles de seguridad en pull requests y pushes a `main`.
+package smoke tests y controles de seguridad en pull requests y pushes a `dev` y `main`.
+
+El análisis programado de Mutmut tiene una baseline reproducible del 2 de septiembre de
+2026: 2.406 mutantes, 1.689 eliminados y 717 sobrevivientes, equivalente a 70,20% sobre
+mutantes clasificados. La puntuación todavía es informativa; una falla de ejecución,
+recolección o exportación sí deja el workflow en rojo. Consulta la
+[estrategia de pruebas](docs/testing-strategy.md#baseline-auditada) para interpretar y
+reproducir el resultado.
+
+La configuración versionada limita y agrupa los PR de Dependabot. Las opciones hospedadas
+de GitHub —Dependabot alerts, Dependabot security updates, secret scanning y push
+protection— se administran aparte y deben comprobarse al habilitar un repositorio remoto.
+La [guía de gobernanza](docs/governance.md#controles-de-seguridad-hospedados) explica qué
+queda en Git y qué vive en la configuración de GitHub.
 
 Antes de cambiar una regla del validador, documenta el contrato esperado, agrega pruebas
 positivas y negativas, y confirma que el script continúa sin modificar el proyecto
