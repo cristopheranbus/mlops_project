@@ -21,7 +21,8 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 5. [Ruff estricto](ruff.md)
 6. [mypy estricto](mypy.md)
 7. [Perfiles](profiles.md)
-8. [Estrategia de pruebas](testing-strategy.md)
+8. [Estrategia de pruebas](testing-strategy.md), incluida la baseline de Mutmut y sus
+   guardas contra falsos verdes
 
 ### Trabajo con Databricks
 
@@ -52,7 +53,8 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 3. [Ruff estricto](ruff.md)
 4. [mypy estricto](mypy.md)
 5. [Evaluación de activación](evaluation.md)
-6. [Gobernanza y revisión](governance.md)
+6. [Gobernanza y revisión](governance.md), incluidos Dependabot y los controles de
+   seguridad hospedados en GitHub
 7. [Guía de contribución](../CONTRIBUTING.md)
 8. [Política de seguridad](../SECURITY.md)
 9. [Migración desde v0.1.0](migration-v0.1.md)

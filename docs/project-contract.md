@@ -241,6 +241,13 @@ La matriz de CI cubre Python 3.12 y 3.13 sobre Linux y Windows. Las acciones se 
 commits completos, los permisos parten de `contents: read` y ninguna prueba externa se
 ejecuta implícitamente.
 
+Cuando el proyecto habilita mutation testing, debe usar la interfaz vigente de Mutmut 3,
+seleccionar únicamente pruebas que ejerciten el código mutado, comprobar que pytest importa
+el módulo desde el workspace de mutación y exportar `mutmut-cicd-stats.json`. La puntuación
+puede comenzar como señal informativa; una ejecución rota o sin estadísticas nunca puede
+presentarse como verde. El umbral sólo se vuelve bloqueante después de revisar mutantes
+equivalentes y registrar una baseline reproducible.
+
 ## Contrato documental
 
 Todos los perfiles incluyen:
@@ -278,6 +285,12 @@ qué funciona localmente y qué requiere credenciales.
 - permisos mínimos en CI y producción;
 - versiones exactas para promoción y rollback;
 - ausencia de tokens, claves privadas y perfiles locales en commits.
+
+Si el proyecto se publica en GitHub, su guía operativa distingue la configuración versionada
+de los controles hospedados. Dependabot alerts, Dependabot security updates, secret scanning
+y push protection se habilitan y verifican después de crear el remoto; generar archivos no
+autoriza a la skill a modificar esas opciones. Los PR de dependencias se dirigen a `dev`, se
+agrupan para reducir ruido y nunca se aprueban o fusionan automáticamente.
 
 ## Criterio de completitud
 

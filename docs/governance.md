@@ -134,6 +134,59 @@ eliminar la revisión humana. Consulta la
 y la guía oficial para
 [optimizar la creación de PR](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates).
 
+## Controles de seguridad hospedados
+
+Algunos controles no viven en el checkout y, por tanto, no pueden revisarse sólo leyendo
+`.github/`. Hay que distinguir dos capas:
+
+| Capa | Ejemplos | Cómo se conserva |
+| --- | --- | --- |
+| Versionada | `dependabot.yml`, workflows, permisos, acciones fijadas a SHA | Commit, revisión y CI |
+| Hospedada por GitHub | Dependabot alerts, security updates, secret scanning, push protection | Settings, rulesets y API del repositorio |
+
+Para este repositorio, el estado esperado es:
+
+- Dependabot alerts habilitado;
+- Dependabot security updates habilitado;
+- secret scanning habilitado;
+- push protection habilitado;
+- PR automáticos dirigidos a `dev`, sin auto-approve ni auto-merge.
+
+En la interfaz, revisa **Settings → Security → Code security and analysis**. La ubicación o
+el nombre exacto puede variar según el plan y la evolución de GitHub. La fuente autoritativa
+es la configuración del repositorio, no una captura de pantalla ni este documento.
+
+Con GitHub CLI y una identidad autorizada, habilitar los dos controles de Dependabot requiere
+una acción explícita sobre el remoto:
+
+```powershell
+gh api --method PUT repos/OWNER/REPOSITORY/vulnerability-alerts
+gh api --method PUT repos/OWNER/REPOSITORY/automated-security-fixes
+```
+
+Comprueba las alertas sin exponer su contenido:
+
+```powershell
+gh api --include repos/OWNER/REPOSITORY/vulnerability-alerts
+gh api repos/OWNER/REPOSITORY --jq '.security_and_analysis'
+```
+
+El primer comando debe responder `204 No Content`; el segundo muestra estados como
+`enabled`. Sustituye `OWNER/REPOSITORY` conscientemente. No ejecutes estos comandos contra
+un repositorio ajeno o productivo sin autorización: modifican configuración remota.
+
+La activación no autoriza merges automáticos. Una actualización de seguridad sigue pasando
+por PR, revisión humana, `quality` y los controles aplicables. Si las alertas están
+deshabilitadas, `.github/dependabot.yml` puede parecer correcto y aun así no habrá detección
+ni correcciones automáticas basadas en advisories.
+
+Referencias oficiales:
+
+- [Configurar Dependabot alerts](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-dependabot-alerts)
+- [Configurar Dependabot security updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates)
+- [Configurar secret scanning](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/detect-secret-leaks/enable-secret-scanning)
+- [Push protection](https://docs.github.com/en/code-security/concepts/secret-security/push-protection)
+
 ## Draft pull requests
 
 GitHub no solicita automáticamente revisión de code owners mientras un PR permanece como

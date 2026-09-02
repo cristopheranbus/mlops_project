@@ -162,6 +162,11 @@ uv build
 La cobertura mínima configurada es 90% de branches. El objetivo no es maximizar el
 porcentaje, sino probar decisiones, errores y contratos relevantes.
 
+Si el cambio toca el validador, selección de pruebas o configuración de Mutmut, lanza además
+el workflow manual `01 - Code quality and package validation` desde `dev` o tu rama y revisa
+el artefacto `mutation-analysis`. Un color verde sin `mutmut-cicd-stats.json` no es evidencia
+válida. La puntuación es informativa; los fallos operativos son bloqueantes.
+
 ## Cambiar `SKILL.md`
 
 `skills/create-mlops-project/SKILL.md` debe responder con claridad:

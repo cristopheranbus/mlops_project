@@ -104,6 +104,20 @@ controls. Default every workflow to `contents: read`, grant extra permissions pe
 never use `pull_request_target` to execute repository code, and pin every action to a
 full commit SHA with a version comment.
 
+Generate `.github/dependabot.yml` with `target-branch: dev`, grouped monthly version updates,
+a low open-PR limit per ecosystem, and separately grouped security updates. Do not generate
+auto-approve or auto-merge. Explain that this file does not enable Dependabot alerts,
+Dependabot security updates, secret scanning, or push protection: those are hosted repository
+settings. Include a post-publication checklist and official GitHub links in the generated
+operations documentation. Do not mutate remote settings unless the user explicitly requests
+it and the target repository has been verified.
+
+Use GitHub's official guides for
+[Dependabot alerts](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-dependabot-alerts),
+[Dependabot security updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates),
+[secret scanning](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/detect-secret-leaks/enable-secret-scanning),
+and [push protection](https://docs.github.com/en/code-security/concepts/secret-security/push-protection).
+
 External deployment is a separate job with a protected environment and workload identity.
 A missing external credential must skip or block that job clearly, never turn it into a
 false success. Fork pull requests never receive deployment credentials.
