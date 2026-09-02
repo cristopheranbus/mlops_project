@@ -189,10 +189,18 @@ Un `xfail` debe incluir:
 
 ## Mutation testing programado
 
-El workflow `01` ejecuta Mutmut los miércoles y cuando se lanza manualmente. Se encuentra
-en fase informativa (`continue-on-error`) para construir una baseline honesta: el log
-muestra mutantes detectados, sobrevivientes, timeouts y errores sospechosos. El código a
-mutar se limita al validador y el runner usa la suite sin coverage para evitar ruido.
+El workflow `01` ejecuta Mutmut los miércoles y cuando se lanza manualmente. La puntuación
+continúa en fase informativa mientras se construye una baseline honesta: el log muestra
+mutantes detectados, sobrevivientes, timeouts y errores sospechosos. Sin embargo, un fallo
+operativo de Mutmut sí deja el workflow en rojo; así, una configuración rota o una suite que
+no logra recolectar estadísticas nunca se confunde con un análisis exitoso.
+
+`source_paths` limita las mutaciones al validador. La selección
+`pytest_add_cli_args_test_selection` ejecuta únicamente las pruebas que ejercitan ese código;
+excluye deliberadamente pruebas documentales y de empaquetado que dependen de archivos que
+Mutmut no copia a su workspace `mutants/`. El runner desactiva coverage para evitar medir
+cada mutante con una instrumentación redundante. Estos nombres corresponden a la
+[configuración oficial de Mutmut](https://github.com/boxed/mutmut#configuration).
 
 Para reproducirlo:
 
@@ -208,7 +216,12 @@ ejecuta sobre Ubuntu.
 
 No hagas bloqueante la puntuación hasta clasificar los sobrevivientes equivalentes. La
 primera meta es 70%; después de estabilizar tiempos y excepciones, el objetivo es 80–85%.
-Cada exclusión necesita una justificación concreta.
+Cada exclusión necesita una justificación concreta. Esta política distingue dos resultados:
+
+- un análisis que termina y reporta mutantes sobrevivientes es evidencia válida, aunque su
+  puntuación todavía sea informativa;
+- un análisis que no recolecta estadísticas, no encuentra pruebas o termina con una excepción
+  es un fallo operativo y debe quedar rojo.
 
 ## Cómo agregar una regla
 

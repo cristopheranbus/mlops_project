@@ -129,3 +129,25 @@ def test_quality_workflow_enforces_branch_and_mypy_contracts() -> None:
     assert "--no-incremental" in source
     assert "--junit-format per_file" in source
     assert "needs: [branch-policy, static-analysis, type-check, tests, package]" in source
+
+
+def test_mutation_analysis_uses_current_config_and_reports_operational_failures() -> None:
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        pyproject = tomllib.load(stream)
+
+    config = pyproject["tool"]["mutmut"]
+    assert config["source_paths"] == ["skills/create-mlops-project/scripts/validate_project.py"]
+    assert config["pytest_add_cli_args_test_selection"] == [
+        "tests/test_contract_matrix.py",
+        "tests/test_properties.py",
+        "tests/test_validate_project.py",
+        "tests/test_validator_edges.py",
+    ]
+    assert "paths_to_mutate" not in config
+    assert "tests_dir" not in config
+
+    workflow = (ROOT / ".github" / "workflows" / "01-code-quality.yml").read_text(encoding="utf-8")
+    mutation_job = workflow.split("  mutation-analysis:", maxsplit=1)[1].split(
+        "\n  quality:", maxsplit=1
+    )[0]
+    assert "continue-on-error" not in mutation_job

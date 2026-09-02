@@ -47,9 +47,12 @@ matriz de Python 3.12/3.13 sobre Ubuntu y Windows. `package` construye el wheel,
 en un entorno separado y comprueba imports. `quality` es el agregador estable que puede
 configurarse como required check.
 
-`mutation-analysis` se ejecuta de manera programada o manual y comienza como señal
-informativa. No forma parte del agregador hasta establecer una baseline y clasificar
-mutantes equivalentes.
+`mutation-analysis` se ejecuta de manera programada o manual. La puntuación permanece como
+señal informativa y no forma parte del agregador hasta establecer una baseline y clasificar
+mutantes equivalentes. El job no oculta fallos operativos: si Mutmut no puede recolectar
+estadísticas o ejecutar la suite seleccionada, la ejecución programada o manual queda roja.
+La selección se limita a las pruebas que ejercitan el validador para que el workspace aislado
+`mutants/` no intente resolver documentación u otros archivos ajenos a la mutación.
 
 GitHub documenta las matrices como una forma de crear variaciones de un job para varias
 versiones y sistemas operativos: [matrix strategies](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).

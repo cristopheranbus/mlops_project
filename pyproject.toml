@@ -96,6 +96,11 @@ show_missing = true
 skip_covered = true
 
 [tool.mutmut]
-paths_to_mutate = ["skills/create-mlops-project/scripts/validate_project.py"]
-tests_dir = ["tests/"]
+source_paths = ["skills/create-mlops-project/scripts/validate_project.py"]
+pytest_add_cli_args_test_selection = [
+    "tests/test_contract_matrix.py",
+    "tests/test_properties.py",
+    "tests/test_validate_project.py",
+    "tests/test_validator_edges.py",
+]
 runner = "python -m pytest -q --no-cov"
