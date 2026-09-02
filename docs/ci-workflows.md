@@ -47,9 +47,21 @@ matriz de Python 3.12/3.13 sobre Ubuntu y Windows. `package` construye el wheel,
 en un entorno separado y comprueba imports. `quality` es el agregador estable que puede
 configurarse como required check.
 
-`mutation-analysis` se ejecuta de manera programada o manual y comienza como señal
-informativa. No forma parte del agregador hasta establecer una baseline y clasificar
-mutantes equivalentes.
+`mutation-analysis` se ejecuta de manera programada o manual. La baseline auditada actual es
+70,20% —1.689 mutantes eliminados de 2.406 clasificados— y la puntuación permanece como señal
+informativa mientras se revisan los 717 sobrevivientes. No forma parte del agregador
+`quality`; sus fallos operativos sí son rojos. Si Mutmut no puede recolectar
+estadísticas o ejecutar la suite seleccionada, la ejecución programada o manual queda roja.
+La selección se limita a las pruebas que ejercitan el validador para que el workspace aislado
+`mutants/` no intente resolver documentación u otros archivos ajenos a la mutación. Antes del
+análisis, el workflow copia el validador a un staging efímero `src/scripts/`: Mutmut reconoce
+ese layout, antepone `mutants/src` y mantiene alineadas la clave del mutante y la identidad
+`scripts.validate_project` usada por las pruebas. El archivo canónico nunca se duplica en Git.
+Al terminar, el job publica `mutmut-cicd-stats.json` como artefacto `mutation-analysis` y lo
+incluye en el resumen de Actions; así, los conteos y la futura puntuación pueden auditarse sin
+depender del color general ni de logs verbosos.
+
+Consulta la [baseline, fórmula y guardas contra falsos verdes](testing-strategy.md#baseline-auditada).
 
 GitHub documenta las matrices como una forma de crear variaciones de un job para varias
 versiones y sistemas operativos: [matrix strategies](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).
@@ -100,6 +112,12 @@ Dependabot agrupa los cambios periódicos por ecosistema y los propone mensualme
 actualizaciones de seguridad conservan un grupo separado y prioritario. La configuración,
 los límites y el procedimiento de revisión están documentados en
 [Gobernanza](governance.md#dependabot-sin-avalancha-de-pull-requests).
+
+El archivo `.github/dependabot.yml` no habilita por sí solo Dependabot alerts ni Dependabot
+security updates. Esas opciones viven en la configuración hospedada del repositorio y deben
+activarse y verificarse por separado. Secret scanning y push protection siguen la misma
+frontera: no deben darse por habilitados sólo porque exista un workflow de seguridad. Consulta
+[Controles de seguridad hospedados](governance.md#controles-de-seguridad-hospedados).
 
 ### Permisos y triggers
 

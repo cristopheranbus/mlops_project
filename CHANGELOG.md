@@ -31,6 +31,14 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Documentation now records the audited 70.20% mutation baseline, explains every Mutmut
+  operational guard, and distinguishes versioned Dependabot policy from GitHub-hosted
+  security settings.
+- The skill now requires generated projects to document mutation evidence and hosted
+  security controls without treating project generation as authorization to mutate a remote.
+- Mutation testing now uses the current Mutmut configuration names and pytest arguments,
+  runs only validator-focused tests inside the isolated mutant workspace, and exposes
+  operational failures instead of reporting a false-green scheduled workflow.
 - Generated projects now use exactly one primary package and keep all production Python
   logic under `src/<package>/`.
 - Documentation navigation now provides dedicated paths for beginners, ML engineers,

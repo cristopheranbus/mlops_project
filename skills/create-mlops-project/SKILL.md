@@ -41,7 +41,9 @@ Ask only for missing choices that materially change the result. Default to Pytho
    thin entry points into package workflows.
    Generate the numbered quality and security workflows for every profile; add the
    Databricks validation/deployment and production monitoring workflows for
-   `databricks-mlops`.
+   `databricks-mlops`. Generate beginner-facing instructions for the first local result,
+   configuration changes, tests, CI evidence, and the boundary between versioned files and
+   hosted repository settings.
 7. Record the chosen profile in `.mlops-profile` so validation is reproducible.
 8. Run `scripts/validate_project.py <destination> --profile <profile>` from this skill.
 9. Run every applicable local quality command, fix failures, and repeat validation.
@@ -51,5 +53,6 @@ Ask only for missing choices that materially change the result. Default to Pytho
 Return created components, assumptions, the selected profile, commands run, successful
 checks, failed checks, and external checks not run. Never report Databricks, registry,
 serving, or other external validation as successful without executing it against
-authorized infrastructure. Do not expose secrets or initialize a remote repository unless
-the user separately asks.
+authorized infrastructure. Treat a mutation run without structured statistics as failed,
+not as a perfect score. Do not expose secrets, initialize a remote repository, or change
+GitHub-hosted security settings unless the user separately asks.

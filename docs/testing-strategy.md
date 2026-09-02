@@ -189,26 +189,129 @@ Un `xfail` debe incluir:
 
 ## Mutation testing programado
 
-El workflow `01` ejecuta Mutmut los miércoles y cuando se lanza manualmente. Se encuentra
-en fase informativa (`continue-on-error`) para construir una baseline honesta: el log
-muestra mutantes detectados, sobrevivientes, timeouts y errores sospechosos. El código a
-mutar se limita al validador y el runner usa la suite sin coverage para evitar ruido.
+El workflow `01` ejecuta Mutmut los miércoles y cuando se lanza manualmente. La puntuación
+continúa en fase informativa mientras se clasifican los sobrevivientes: el log muestra
+mutantes detectados, sobrevivientes, timeouts y errores sospechosos. Sin embargo, un fallo
+operativo de Mutmut sí deja el workflow en rojo; así, una configuración rota o una suite que
+no logra recolectar estadísticas nunca se confunde con un análisis exitoso.
+
+### Baseline auditada
+
+La primera ejecución completa y reproducible se registró el 2 de septiembre de 2026 sobre
+el commit `53e7dd9`:
+
+| Estado | Cantidad | Interpretación |
+| --- | ---: | --- |
+| `killed` | 1.689 | Una prueba detectó el cambio artificial |
+| `survived` | 717 | La suite terminó verde pese al cambio; requiere análisis |
+| Total clasificado | 2.406 | `killed + survived` en esta ejecución |
+| `no_tests` | 0 | Ningún mutante quedó sin una prueba seleccionada |
+| `timeout` | 0 | Ningún mutante agotó el tiempo disponible |
+| `suspicious` | 0 | No hubo resultados anormalmente rápidos |
+| `skipped` | 0 | No se omitieron mutantes |
+| `segfault` | 0 | No hubo fallos nativos del proceso |
+
+La puntuación auditada es `1689 / (1689 + 717) = 70,20%`. El resultado y su resumen se
+conservan en la [ejecución de GitHub Actions](https://github.com/cristopheranbus/mlops_project/actions/runs/33656002326).
+Los artefactos de Actions pueden expirar; por eso los conteos, el commit y la fórmula quedan
+registrados aquí. No compares cantidades absolutas después de cambiar el código fuente: usa
+la proporción, revisa el diff y establece una baseline nueva para el nuevo alcance.
+
+La baseline supera la primera meta de 70%, pero no convierte el score en bloqueante. Los
+717 sobrevivientes deben clasificarse antes de elevar el umbral: comportamiento importante
+sin aserción, mutante equivalente, código inalcanzable o exclusión realmente justificada.
+
+`source_paths` limita las mutaciones a `src/scripts/validate_project.py`, una copia efímera
+del validador canónico que el workflow prepara antes de ejecutar Mutmut. Esta etapa es necesaria
+porque Mutmut deriva la identidad del módulo desde la ruta y sólo elimina el prefijo convencional
+`src/`; mutar directamente `skills/create-mlops-project/scripts/validate_project.py` produciría
+una clave incompatible con el import real `scripts.validate_project`. La selección
+`pytest_add_cli_args_test_selection` ejecuta únicamente las pruebas que ejercitan ese código;
+excluye deliberadamente pruebas documentales y de empaquetado que dependen de archivos que
+Mutmut no copia a su workspace `mutants/`. `pytest_add_cli_args` desactiva coverage para
+evitar medir cada mutante con una instrumentación redundante; no se usa el antiguo campo
+`runner`, porque Mutmut 3 integra pytest y recibe sus argumentos mediante esta interfaz.
+
+Mutmut antepone automáticamente `mutants/src` durante pytest. Por eso el módulo instrumentado
+se importa como `scripts.validate_project`, exactamente la misma identidad que usan las pruebas,
+sin modificar manualmente `sys.path`. Si se usa una ruta no convencional, las pruebas pueden
+pasar contra código instrumentado pero las claves no coinciden y Mutmut rechaza correctamente el
+resultado.
+
+El mismo bootstrap verifica `validator_module.__file__` y falla inmediatamente si el módulo
+queda fuera del workspace actual. Esta guardia hace observable una instalación editable mal
+resuelta antes de aceptar estadísticas vacías o resultados contra el código equivocado.
+`debug = false` evita que cada proceso mutante publique la salida completa de pytest. Para
+diagnosticar una integración rota puede activarse temporalmente en una rama, pero no debe
+permanecer habilitado porque una corrida completa puede producir decenas de MB de logs.
+
+Como `source_paths` apunta a un archivo, `also_copy` incorpora `src/scripts/__init__.py` para
+preservar la identidad de paquete regular dentro de `mutants/src`.
+
+Estos nombres corresponden a la
+[configuración oficial de Mutmut](https://github.com/boxed/mutmut#configuration).
 
 Para reproducirlo:
 
-```text
+```bash
 uv sync --locked --dev --group mutation
+mkdir -p src/scripts
+cp skills/create-mlops-project/scripts/__init__.py src/scripts/__init__.py
+cp skills/create-mlops-project/scripts/validate_project.py src/scripts/validate_project.py
 uv run --group mutation mutmut run
 uv run --group mutation mutmut results
+uv run --group mutation mutmut export-cicd-stats
 ```
+
+En PowerShell, la preparación equivalente es:
+
+```powershell
+uv sync --locked --dev --group mutation
+New-Item -ItemType Directory -Force src/scripts | Out-Null
+Copy-Item skills/create-mlops-project/scripts/__init__.py src/scripts/__init__.py
+Copy-Item skills/create-mlops-project/scripts/validate_project.py src/scripts/validate_project.py
+uv run --group mutation mutmut run
+uv run --group mutation mutmut results
+uv run --group mutation mutmut export-cicd-stats
+```
+
+`/src/` está ignorado en este repositorio porque sólo es staging local de mutation testing; el
+código fuente canónico continúa exclusivamente bajo `skills/create-mlops-project/scripts/`.
+
+En GitHub Actions, `export-cicd-stats` genera `mutants/mutmut-cicd-stats.json` con los conteos
+de `killed`, `survived`, `no_tests`, `timeout`, `suspicious`, `skipped` y `segfault`. El workflow
+añade ese JSON al resumen de la ejecución y lo publica como artefacto `mutation-analysis`.
+La ausencia del archivo es un fallo operativo, incluso si el paso anterior alcanzó a terminar.
+
+### Guardas contra falsos verdes
+
+La integración aplica cuatro invariantes que deben conservarse juntas:
+
+1. Mutmut modifica una copia efímera bajo `src/scripts/`, pero la fuente versionada sigue
+   siendo `skills/create-mlops-project/scripts/validate_project.py`.
+2. Las pruebas comprueban que `validator_module.__file__` pertenece al workspace del mutante;
+   una importación accidental desde el checkout original falla.
+3. El job no usa `continue-on-error`: una excepción, una selección vacía o un fallo de
+   recolección deja la ejecución roja.
+4. `export-cicd-stats` y `if-no-files-found: error` obligan a producir evidencia estructurada,
+   incluso cuando el análisis previo falla.
+
+Un workflow verde sin `mutmut-cicd-stats.json` no es válido. Tampoco basta con que pytest
+pase dentro de `mutants/`: debe haberse cargado el módulo mutado con la identidad esperada.
 
 Mutmut no ofrece ejecución nativa en Windows. Usa WSL o Linux para estos comandos; los
 demás gates continúan siendo compatibles con PowerShell. El workflow programado se
 ejecuta sobre Ubuntu.
 
 No hagas bloqueante la puntuación hasta clasificar los sobrevivientes equivalentes. La
-primera meta es 70%; después de estabilizar tiempos y excepciones, el objetivo es 80–85%.
-Cada exclusión necesita una justificación concreta.
+primera meta de 70% ya está cumplida; después de clasificar sobrevivientes y estabilizar
+tiempos, el objetivo es 80–85%.
+Cada exclusión necesita una justificación concreta. Esta política distingue dos resultados:
+
+- un análisis que termina y reporta mutantes sobrevivientes es evidencia válida, aunque su
+  puntuación todavía sea informativa;
+- un análisis que no recolecta estadísticas, no encuentra pruebas o termina con una excepción
+  es un fallo operativo y debe quedar rojo.
 
 ## Cómo agregar una regla
 
