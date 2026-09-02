@@ -103,4 +103,4 @@ pytest_add_cli_args_test_selection = [
     "tests/test_validate_project.py",
     "tests/test_validator_edges.py",
 ]
-runner = "python -m pytest -q --no-cov"
+pytest_add_cli_args = ["--no-cov", "-q"]

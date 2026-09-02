@@ -143,6 +143,8 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
         "tests/test_validate_project.py",
         "tests/test_validator_edges.py",
     ]
+    assert config["pytest_add_cli_args"] == ["--no-cov", "-q"]
+    assert "runner" not in config
     assert "paths_to_mutate" not in config
     assert "tests_dir" not in config
 

@@ -31,9 +31,9 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- Mutation testing now uses the current Mutmut configuration names, runs only validator-focused
-  tests inside the isolated mutant workspace, and exposes operational failures instead of
-  reporting a false-green scheduled workflow.
+- Mutation testing now uses the current Mutmut configuration names and pytest arguments,
+  runs only validator-focused tests inside the isolated mutant workspace, and exposes
+  operational failures instead of reporting a false-green scheduled workflow.
 - Generated projects now use exactly one primary package and keep all production Python
   logic under `src/<package>/`.
 - Documentation navigation now provides dedicated paths for beginners, ML engineers,

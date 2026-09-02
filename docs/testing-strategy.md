@@ -198,8 +198,10 @@ no logra recolectar estadísticas nunca se confunde con un análisis exitoso.
 `source_paths` limita las mutaciones al validador. La selección
 `pytest_add_cli_args_test_selection` ejecuta únicamente las pruebas que ejercitan ese código;
 excluye deliberadamente pruebas documentales y de empaquetado que dependen de archivos que
-Mutmut no copia a su workspace `mutants/`. El runner desactiva coverage para evitar medir
-cada mutante con una instrumentación redundante. Estos nombres corresponden a la
+Mutmut no copia a su workspace `mutants/`. `pytest_add_cli_args` desactiva coverage para
+evitar medir cada mutante con una instrumentación redundante; no se usa el antiguo campo
+`runner`, porque Mutmut 3 integra pytest y recibe sus argumentos mediante esta interfaz.
+Estos nombres corresponden a la
 [configuración oficial de Mutmut](https://github.com/boxed/mutmut#configuration).
 
 Para reproducirlo:
