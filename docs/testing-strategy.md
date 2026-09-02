@@ -215,6 +215,8 @@ no existe y el bootstrap no modifica `sys.path`.
 El mismo bootstrap verifica `validator_module.__file__` y falla inmediatamente si el módulo
 queda fuera del workspace actual. Esta guardia hace observable una instalación editable mal
 resuelta antes de aceptar estadísticas vacías o resultados contra el código equivocado.
+`debug = true` conserva en GitHub Actions el comando de pytest y el error original; el mayor
+volumen de log se acepta porque el job sólo se ejecuta semanalmente o bajo petición manual.
 
 Estos nombres corresponden a la
 [configuración oficial de Mutmut](https://github.com/boxed/mutmut#configuration).
