@@ -106,6 +106,4 @@ pytest_add_cli_args_test_selection = [
 pytest_add_cli_args = [
     "--no-cov",
     "-q",
-    "-o",
-    "pythonpath=skills/create-mlops-project",
 ]

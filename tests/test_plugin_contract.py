@@ -146,8 +146,6 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
     assert config["pytest_add_cli_args"] == [
         "--no-cov",
         "-q",
-        "-o",
-        "pythonpath=skills/create-mlops-project",
     ]
     assert "runner" not in config
     assert "paths_to_mutate" not in config
@@ -158,3 +156,10 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
         "\n  quality:", maxsplit=1
     )[0]
     assert "continue-on-error" not in mutation_job
+
+    conftest = (ROOT / "tests" / "conftest.py").read_text(encoding="utf-8")
+    assert 'os.environ.get("MUTANT_UNDER_TEST")' in conftest
+    assert 'Path.cwd() / "skills" / "create-mlops-project"' in conftest
+    assert conftest.index("sys.path.insert") < conftest.index(
+        "from scripts.validate_project import PROFILES"
+    )

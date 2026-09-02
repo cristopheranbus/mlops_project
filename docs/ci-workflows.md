@@ -54,7 +54,8 @@ estadísticas o ejecutar la suite seleccionada, la ejecución programada o manua
 La selección se limita a las pruebas que ejercitan el validador para que el workspace aislado
 `mutants/` no intente resolver documentación u otros archivos ajenos a la mutación. Durante
 esa ejecución, pytest antepone el código copiado en `mutants/` al paquete instalado en modo
-editable; esto garantiza que las pruebas observan cada mutante y no el checkout original.
+editable mediante un bootstrap condicionado por `MUTANT_UNDER_TEST`; esto garantiza que las
+pruebas observan cada mutante y no el checkout original, sin alterar las ejecuciones normales.
 
 GitHub documenta las matrices como una forma de crear variaciones de un job para varias
 versiones y sistemas operativos: [matrix strategies](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).
