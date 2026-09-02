@@ -138,6 +138,7 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
     config = pyproject["tool"]["mutmut"]
     assert config["debug"] is True
     assert config["source_paths"] == ["skills/create-mlops-project/scripts/validate_project.py"]
+    assert config["also_copy"] == ["skills/create-mlops-project/scripts/__init__.py"]
     assert config["pytest_add_cli_args_test_selection"] == [
         "tests/test_contract_matrix.py",
         "tests/test_properties.py",

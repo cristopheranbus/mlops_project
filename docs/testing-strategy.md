@@ -218,6 +218,12 @@ resuelta antes de aceptar estadísticas vacías o resultados contra el código e
 `debug = true` conserva en GitHub Actions el comando de pytest y el error original; el mayor
 volumen de log se acepta porque el job sólo se ejecuta semanalmente o bajo petición manual.
 
+Como `source_paths` apunta a un archivo, Mutmut no copia automáticamente
+`scripts/__init__.py`. `also_copy` incorpora ese marcador para que `scripts` sea un paquete
+regular dentro de `mutants/`. De lo contrario, Python considera esa carpeta un namespace
+package y puede preferir el paquete regular de la instalación editable, aunque el path mutante
+aparezca primero.
+
 Estos nombres corresponden a la
 [configuración oficial de Mutmut](https://github.com/boxed/mutmut#configuration).
 
