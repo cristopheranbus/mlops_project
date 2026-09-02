@@ -195,22 +195,22 @@ mutantes detectados, sobrevivientes, timeouts y errores sospechosos. Sin embargo
 operativo de Mutmut sí deja el workflow en rojo; así, una configuración rota o una suite que
 no logra recolectar estadísticas nunca se confunde con un análisis exitoso.
 
-`source_paths` limita las mutaciones al validador. La selección
+`source_paths` limita las mutaciones a `src/scripts/validate_project.py`, una copia efímera
+del validador canónico que el workflow prepara antes de ejecutar Mutmut. Esta etapa es necesaria
+porque Mutmut deriva la identidad del módulo desde la ruta y sólo elimina el prefijo convencional
+`src/`; mutar directamente `skills/create-mlops-project/scripts/validate_project.py` produciría
+una clave incompatible con el import real `scripts.validate_project`. La selección
 `pytest_add_cli_args_test_selection` ejecuta únicamente las pruebas que ejercitan ese código;
 excluye deliberadamente pruebas documentales y de empaquetado que dependen de archivos que
 Mutmut no copia a su workspace `mutants/`. `pytest_add_cli_args` desactiva coverage para
 evitar medir cada mutante con una instrumentación redundante; no se usa el antiguo campo
 `runner`, porque Mutmut 3 integra pytest y recibe sus argumentos mediante esta interfaz.
 
-Durante el bootstrap de pytest, `tests/conftest.py` detecta `MUTANT_UNDER_TEST` y antepone
-`skills/create-mlops-project` del workspace actual antes de importar `scripts`. Mutmut cambia
-el directorio actual a `mutants/`, de modo que esta resolución carga la copia instrumentada y
-no la instalación editable del checkout original. La inserción ocurre antes de importar tanto
-`scripts.validate_project` como cualquier helper de pruebas que pueda importarlo de forma
-indirecta; moverla después permitiría que `sys.modules` conservara el módulo original. Sin esta
-precedencia las pruebas pueden pasar contra el código original y Mutmut termina con «no test
-case for any mutant», un falso negativo especialmente peligroso. Fuera de Mutmut, la variable
-no existe y el bootstrap no modifica `sys.path`.
+Mutmut antepone automáticamente `mutants/src` durante pytest. Por eso el módulo instrumentado
+se importa como `scripts.validate_project`, exactamente la misma identidad que usan las pruebas,
+sin modificar manualmente `sys.path`. Si se usa una ruta no convencional, las pruebas pueden
+pasar contra código instrumentado pero las claves no coinciden y Mutmut rechaza correctamente el
+resultado.
 
 El mismo bootstrap verifica `validator_module.__file__` y falla inmediatamente si el módulo
 queda fuera del workspace actual. Esta guardia hace observable una instalación editable mal
@@ -218,22 +218,34 @@ resuelta antes de aceptar estadísticas vacías o resultados contra el código e
 `debug = true` conserva en GitHub Actions el comando de pytest y el error original; el mayor
 volumen de log se acepta porque el job sólo se ejecuta semanalmente o bajo petición manual.
 
-Como `source_paths` apunta a un archivo, Mutmut no copia automáticamente
-`scripts/__init__.py`. `also_copy` incorpora ese marcador para que `scripts` sea un paquete
-regular dentro de `mutants/`. De lo contrario, Python considera esa carpeta un namespace
-package y puede preferir el paquete regular de la instalación editable, aunque el path mutante
-aparezca primero.
+Como `source_paths` apunta a un archivo, `also_copy` incorpora `src/scripts/__init__.py` para
+preservar la identidad de paquete regular dentro de `mutants/src`.
 
 Estos nombres corresponden a la
 [configuración oficial de Mutmut](https://github.com/boxed/mutmut#configuration).
 
 Para reproducirlo:
 
-```text
+```bash
 uv sync --locked --dev --group mutation
+mkdir -p src/scripts
+cp skills/create-mlops-project/scripts/__init__.py src/scripts/__init__.py
+cp skills/create-mlops-project/scripts/validate_project.py src/scripts/validate_project.py
 uv run --group mutation mutmut run
 uv run --group mutation mutmut results
 ```
+
+En PowerShell, la preparación equivalente es:
+
+```powershell
+uv sync --locked --dev --group mutation
+New-Item -ItemType Directory -Force src/scripts | Out-Null
+Copy-Item skills/create-mlops-project/scripts/__init__.py src/scripts/__init__.py
+Copy-Item skills/create-mlops-project/scripts/validate_project.py src/scripts/validate_project.py
+```
+
+`/src/` está ignorado en este repositorio porque sólo es staging local de mutation testing; el
+código fuente canónico continúa exclusivamente bajo `skills/create-mlops-project/scripts/`.
 
 Mutmut no ofrece ejecución nativa en Windows. Usa WSL o Linux para estos comandos; los
 demás gates continúan siendo compatibles con PowerShell. El workflow programado se

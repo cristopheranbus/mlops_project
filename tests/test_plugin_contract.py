@@ -137,8 +137,8 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
 
     config = pyproject["tool"]["mutmut"]
     assert config["debug"] is True
-    assert config["source_paths"] == ["skills/create-mlops-project/scripts/validate_project.py"]
-    assert config["also_copy"] == ["skills/create-mlops-project/scripts/__init__.py"]
+    assert config["source_paths"] == ["src/scripts/validate_project.py"]
+    assert config["also_copy"] == ["src/scripts/__init__.py"]
     assert config["pytest_add_cli_args_test_selection"] == [
         "tests/test_contract_matrix.py",
         "tests/test_properties.py",
@@ -158,14 +158,10 @@ def test_mutation_analysis_uses_current_config_and_reports_operational_failures(
         "\n  quality:", maxsplit=1
     )[0]
     assert "continue-on-error" not in mutation_job
+    assert "mkdir -p src/scripts" in mutation_job
+    assert "validate_project.py src/scripts/validate_project.py" in mutation_job
 
     conftest = (ROOT / "tests" / "conftest.py").read_text(encoding="utf-8")
     assert 'os.environ.get("MUTANT_UNDER_TEST")' in conftest
-    assert 'Path.cwd() / "skills" / "create-mlops-project"' in conftest
-    assert conftest.index("sys.path.insert") < conftest.index(
-        "from scripts import validate_project as validator_module"
-    )
-    assert conftest.index("sys.path.insert") < conftest.index(
-        "from tests.contract_cases import CONTRACT_CASES"
-    )
+    assert "sys.path.insert" not in conftest
     assert "loaded_validator.is_relative_to(Path.cwd().resolve())" in conftest

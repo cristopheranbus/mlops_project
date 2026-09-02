@@ -3,14 +3,9 @@
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
 
 import pytest
-
-if os.environ.get("MUTANT_UNDER_TEST"):
-    mutant_skill_root = Path.cwd() / "skills" / "create-mlops-project"
-    sys.path.insert(0, str(mutant_skill_root))
 
 from scripts import validate_project as validator_module
 from tests.contract_cases import CONTRACT_CASES

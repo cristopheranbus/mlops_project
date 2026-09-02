@@ -153,6 +153,11 @@ jobs:
           version: "0.8.15"
           enable-cache: true
       - run: uv sync --locked --dev --group mutation
+      - name: Stage validator in Mutmut's conventional src layout
+        run: |
+          mkdir -p src/scripts
+          cp skills/create-mlops-project/scripts/__init__.py src/scripts/__init__.py
+          cp skills/create-mlops-project/scripts/validate_project.py src/scripts/validate_project.py
       - run: uv run --group mutation mutmut run
       - if: ${{ always() }}
         run: uv run --group mutation mutmut results
