@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 - 2026-09-04
+
+- agrega un generador CLI determinista para los tres perfiles;
+- permite incluir la skill bajo `.agents/skills` en el repositorio generado;
+- documenta instalación personal, distribución como plugin, uso por repositorio y CLI;
+- mantiene la generación adaptativa para implementar contratos de dominio específicos.
+
 All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the

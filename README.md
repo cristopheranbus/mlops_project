@@ -40,7 +40,7 @@ fronteras entre componentes, configuración, reproducibilidad, pruebas, cobertur
 trazabilidad de experimentos, criterios de aprobación y operación.
 
 `create-mlops-project` convierte esas decisiones en un contrato explícito y genera un
-repositorio nuevo con:
+repositorio nuevo de manera adaptativa con Codex o como baseline determinista mediante CLI:
 
 - layout `src` e imports basados en paquetes;
 - separación entre configuración, acceso a datos, features, entrenamiento, evaluación e
@@ -166,6 +166,26 @@ exige al menos 0.82 en validación y aplica el perfil python-ml.
 La skill confirma o infiere el contrato, crea el proyecto en un destino vacío, ejecuta el
 validador estructural y corre los controles locales aplicables.
 
+### 4. Usarla como CLI determinista
+
+El paquete también expone un generador no interactivo para automatización y bootstrapping:
+
+```powershell
+uv tool install .
+create-mlops-project C:\proyectos\customer_churn `
+  --name customer-churn `
+  --profile mlflow-local
+```
+
+Agrega `--embed-skill` para incluir la skill en
+`.agents/skills/create-mlops-project/` dentro del nuevo repositorio. Así todo el equipo usa el
+mismo contrato. El CLI crea un baseline genérico y reproducible; para implementar datos,
+features, métricas y gates específicos del dominio, usa la generación adaptativa de la skill.
+El destino debe estar vacío en ambos casos.
+
+Consulta [Modos de distribución y generación](docs/distribution.md) para elegir entre skill
+personal, skill de repositorio, plugin y CLI.
+
 Consulta [Guía de inicio](docs/getting-started.md) para la instalación, primera ejecución,
 inspección del resultado y actualización de la skill.
 
@@ -278,6 +298,7 @@ alcance completo y cada código de error están documentados en
 | [Contrato del proyecto](docs/project-contract.md) | Entradas, estructura y criterios de completitud | Usuarios y revisores |
 | [Diseño interno](docs/design.md) | Componentes de esta skill y flujo del validador | Mantenedores |
 | [Validación](docs/validation.md) | CLI, reglas, códigos, límites y CI | Usuarios y mantenedores |
+| [Distribución](docs/distribution.md) | Skill personal, repositorio, plugin y CLI | Usuarios y equipos |
 | [Evaluación](docs/evaluation.md) | Casos de activación explícita, implícita y negativa | Mantenedores |
 | [Ejemplos](docs/examples.md) | Solicitudes completas para casos frecuentes | Usuarios |
 | [Solución de problemas](docs/troubleshooting.md) | Fallos comunes y diagnóstico | Todos |
