@@ -1,7 +1,7 @@
 interface:
   display_name: "Create MLOps Project"
-  short_description: "Create tested, production-ready ML projects"
-  default_prompt: "Use $create-mlops-project to create a new ML project with quality gates, auditable tests, and beginner documentation."
+  short_description: "Create adaptable or deterministic ML projects"
+  default_prompt: "Use $create-mlops-project to create a new ML project interactively or as a deterministic baseline, with quality gates, auditable tests, and beginner documentation."
 
 policy:
   allow_implicit_invocation: true

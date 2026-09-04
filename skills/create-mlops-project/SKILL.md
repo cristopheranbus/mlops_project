@@ -1,12 +1,27 @@
 ---
 name: create-mlops-project
-description: Create a new production-oriented Python ML or MLOps repository from a problem contract, using a local, MLflow, or Databricks profile with tests, CI, validation, and operational documentation. Use when bootstrapping a new ML repository; do not use for ordinary Python packages or modifications to an existing repository.
+description: Create a new production-oriented Python ML or MLOps repository from a problem contract, interactively or with the bundled deterministic scaffolder, using a local, MLflow, or Databricks profile. Use when bootstrapping a new ML repository; do not use for ordinary Python packages or modifications to an existing repository.
 ---
 
 # Create MLOps Project
 
 Create a new, independent repository adapted to the user's ML problem. Do not copy an
 existing project or treat a previous repository as a template.
+
+## Choose the generation mode
+
+- Use adaptive generation for domain-specific implementations. Follow the references below,
+  create the complete project, and tailor data, features, modeling, and acceptance gates.
+- Use `scripts/scaffold_project.py` when the user requests a deterministic baseline, CLI
+  automation, or a repeatable starting structure. The baseline is intentionally generic and
+  must not be presented as completed domain logic.
+- Pass `--embed-skill` only when the user wants the generated repository to carry the same
+  skill under `.agents/skills/create-mlops-project` for its contributors.
+
+Personal installation, repository-local installation, plugin distribution, and CLI use must
+produce projects governed by the same profile and validator contracts. Read
+[distribution modes](references/distribution.md) when installing, embedding, packaging, or
+using the CLI.
 
 ## Gather the contract
 
