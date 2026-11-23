@@ -1,6 +1,6 @@
 {
   "name": "create-mlops-project",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Create production-oriented Python ML and MLOps repositories with validated local, MLflow, or Databricks profiles.",
   "author": {
     "name": "cristopheranbus",
@@ -30,4 +30,3 @@
     ]
   }
 }
-

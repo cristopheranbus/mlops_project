@@ -21,6 +21,7 @@ Este directorio contiene las guías de uso y mantenimiento de `create-mlops-proj
 5. [Ruff estricto](ruff.md)
 6. [mypy estricto](mypy.md)
 7. [Perfiles](profiles.md)
+8. [Modos de distribución y generación](distribution.md)
 8. [Estrategia de pruebas](testing-strategy.md), incluida la baseline de Mutmut y sus
    guardas contra falsos verdes
 
